@@ -39,10 +39,8 @@ const nextConfig = {
       },
     ]
   },
-  async experimental() {
-    return {
-      serverComponentsExternalPackages: ['@supabase/supabase-js'],
-    }
+  experimental: {
+    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
 }
 
