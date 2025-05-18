@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --fenua-violet: #A020F0;
+  --fenua-orange: #FF7F11;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: #fff !important;
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+main, section, .container {
+  background: #fff;
+}
+
+@layer base {
+  :root {
+    --fenua-orange: #FF6B35;
+    --fenua-purple: #6B4EFF;
+  }
+}
+
+@layer components {
+  .btn-gradient {
+    @apply relative overflow-hidden rounded-full px-6 py-3 text-white font-semibold transition-all duration-300 shadow-md;
+    background: linear-gradient(90deg, var(--fenua-violet), var(--fenua-orange));
+    box-shadow: 0 4px 16px 0 rgba(160,32,240,0.10), 0 1.5px 6px 0 rgba(255,127,17,0.10);
+    letter-spacing: 0.02em;
+  }
+
+  .btn-gradient:hover {
+    @apply transform scale-105 shadow-lg;
+    background: linear-gradient(90deg, var(--fenua-orange), var(--fenua-violet));
+  }
+
+  .btn-gradient:active {
+    @apply transform scale-95;
+  }
+
+  .btn-gradient::after {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: linear-gradient(90deg, var(--fenua-orange), var(--fenua-violet));
+  }
+
+  .btn-gradient:hover::after {
+    @apply opacity-100;
+  }
+
+  .nav-link {
+    @apply relative transition-colors duration-200 px-1;
+  }
+  .nav-link::after {
+    content: '';
+    @apply absolute left-0 right-0 -bottom-1 h-1.5 rounded-full opacity-0 transition-all duration-300;
+    background: linear-gradient(90deg, var(--fenua-violet), var(--fenua-orange));
+  }
+  .nav-link:hover::after,
+  .nav-link:focus::after {
+    @apply opacity-100;
+  }
+
+  .navbar-shadow {
+    @apply shadow-lg transition-shadow duration-300;
+    box-shadow: 0 2px 16px 0 rgba(160,32,240,0.08), 0 1.5px 6px 0 rgba(255,127,17,0.08);
+  }
+} 

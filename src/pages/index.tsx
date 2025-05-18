@@ -1,0 +1,354 @@
+import Link from 'next/link'
+import Image from 'next/image'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
+import PackageCard from '@/components/shop/PackageCard'
+import type { Database } from '@/lib/supabase/config'
+
+const TOP_DESTINATIONS = ['États-Unis', 'France', 'Japon', 'Australie', 'Canada']
+
+type Package = Database['public']['Tables']['airalo_packages']['Row']
+
+export default function Home() {
+  const [packages, setPackages] = useState<Package[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchPackages() {
+      const { data } = await supabase
+        .from('airalo_packages')
+        .select('*')
+        .order('final_price_eur', { ascending: true })
+      setPackages(data || [])
+      setLoading(false)
+    }
+    fetchPackages()
+  }, [])
+
+  // Grouper les forfaits par région
+  const packagesByRegion = packages.reduce((acc, pkg) => {
+    const region = pkg.region_fr || ''
+    if (!acc[region]) acc[region] = []
+    acc[region].push(pkg)
+    return acc
+  }, {} as Record<string, Package[]>)
+
+  // Calculer les stats pour chaque région
+  const regionStats = Object.entries(packagesByRegion).reduce((acc, [region, pkgs]) => {
+    acc[region] = {
+      minData: Math.min(...pkgs.map(p => p.data_amount ?? 0)),
+      maxData: Math.max(...pkgs.map(p => p.data_amount ?? 0)),
+      minDays: Math.min(...pkgs.map(p => p.validity_days ?? 0)),
+      maxDays: Math.max(...pkgs.map(p => p.validity_days ?? 0)),
+      minPrice: Math.min(...pkgs.map(p => p.final_price_eur ?? 0)),
+      packageCount: pkgs.length
+    }
+    return acc
+  }, {} as Record<string, any>)
+
+  // Destinations populaires
+  const topDestinations = TOP_DESTINATIONS.filter(region => packagesByRegion[region])
+
+  return (
+    <div className="min-h-screen bg-white">
+
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-purple-600 via-purple-500 to-orange-500">
+        {/* Wave Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <svg
+            className="absolute bottom-0 left-0 w-full h-24 text-white/10"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg
+            className="absolute bottom-0 left-0 w-full h-32 text-white/5"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,0V6c0,21.6,291,111.46,741,110.26,445.39,3.6,459-88.3,459-110.26V0Z"
+              fill="currentColor"
+            />
+          </svg>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative">
+          <div className="text-center">
+            <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
+              <span className="block">Simplifiez vos voyages</span>
+              <span className="block text-orange-200 mt-2">et restez connecté partout dans le Monde</span>
+            </h1>
+            <p className="mt-6 max-w-2xl mx-auto text-xl text-white">
+              Avec nos forfaits eSIM, profitez d'une connexion 4G/5G instantanée
+              dans plus de 100 pays. Plus besoin de carte SIM physique, activez votre forfait en quelques clics.
+            </p>
+            <div className="mt-8 flex justify-center space-x-4">
+              <Link
+                href="/shop"
+                className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-purple-600 bg-white hover:bg-orange-50 transition-colors duration-200"
+              >
+                Voir les forfaits
+              </Link>
+              <Link
+                href="/compatibilite"
+                className="inline-flex items-center px-8 py-3 border border-white text-base font-medium rounded-full text-white hover:bg-white/10 transition-colors duration-200"
+              >
+                Vérifier la compatibilité
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Destinations populaires dynamiques */}
+      <div className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-12">
+            Destinations populaires
+          </h2>
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-orange-500"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 gap-6 min-w-[900px]">
+                {topDestinations.map(region => {
+                  const pkg = packagesByRegion[region][0]
+                  return (
+                    <PackageCard
+                      key={region}
+                      pkg={pkg}
+                      {...regionStats[region]}
+                      isPopular={true}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Avantages Section */}
+      <div className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="text-center">
+              <div className="flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center">
+                  <svg className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="mt-6 text-xl font-bold text-gray-900">Configuration rapide</h3>
+              <p className="mt-3 text-base text-gray-500">
+                Installez votre eSIM en quelques minutes et connectez-vous instantanément.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center">
+                  <svg className="h-8 w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="mt-6 text-xl font-bold text-gray-900">Service clientèle 7/7</h3>
+              <p className="mt-3 text-base text-gray-500">
+                Notre équipe est disponible pour vous accompagner à tout moment.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center">
+                  <svg className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="mt-6 text-xl font-bold text-gray-900">Pour tous les budgets</h3>
+              <p className="mt-3 text-base text-gray-500">
+                Des forfaits adaptés à tous les besoins et tous les budgets.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Comment ça marche */}
+      <div className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-12">
+            Comment ça marche ?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="relative">
+              <div className="flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 to-orange-500 text-white flex items-center justify-center text-2xl font-bold">1</div>
+              </div>
+              <h3 className="mt-6 text-xl font-bold text-gray-900 text-center">Choisissez votre forfait</h3>
+              <p className="mt-3 text-base text-gray-500 text-center">
+                Sélectionnez le forfait qui correspond à vos besoins.
+              </p>
+              <div className="hidden md:block absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2">
+                <svg className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 to-orange-500 text-white flex items-center justify-center text-2xl font-bold">2</div>
+              </div>
+              <h3 className="mt-6 text-xl font-bold text-gray-900 text-center">Recevez votre eSIM</h3>
+              <p className="mt-3 text-base text-gray-500 text-center">
+                Obtenez votre eSIM par email avec un QR code.
+              </p>
+              <div className="hidden md:block absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2">
+                <svg className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 to-orange-500 text-white flex items-center justify-center text-2xl font-bold">3</div>
+              </div>
+              <h3 className="mt-6 text-xl font-bold text-gray-900 text-center">Connectez-vous</h3>
+              <p className="mt-3 text-base text-gray-500 text-center">
+                Scannez le QR code et profitez de votre connexion.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* FAQ Section */}
+      <div className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-12">
+            Questions fréquentes
+          </h2>
+          <div className="max-w-3xl mx-auto">
+            <div className="space-y-6">
+              {[
+                {
+                  question: "Comment fonctionne l'eSIM ?",
+                  answer: "L'eSIM est une carte SIM intégrée à votre appareil. Vous recevez un QR code par email que vous scannez pour activer votre forfait."
+                },
+                {
+                  question: "Mon appareil est-il compatible ?",
+                  answer: "La plupart des smartphones récents sont compatibles avec l'eSIM. Vérifiez la compatibilité de votre appareil dans notre guide."
+                },
+                {
+                  question: "Quand dois-je activer mon eSIM ?",
+                  answer: "Vous pouvez installer votre eSIM avant votre voyage, mais elle ne s'activera qu'à votre arrivée à destination."
+                }
+              ].map((faq, index) => (
+                <div key={index} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200 border border-purple-100">
+                  <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
+                  <p className="mt-2 text-base text-gray-500">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-8">
+              <Link
+                href="/faq"
+                className="inline-flex items-center text-purple-600 hover:text-purple-700 font-medium"
+              >
+                Voir toutes les FAQ
+                <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-sm font-semibold text-purple-300 tracking-wider uppercase">Services</h3>
+              <ul className="mt-4 space-y-4">
+                <li>
+                  <Link href="/shop" className="text-base text-gray-300 hover:text-white">
+                    Forfaits
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard" className="text-base text-gray-300 hover:text-white">
+                    Mon espace
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-purple-300 tracking-wider uppercase">Support</h3>
+              <ul className="mt-4 space-y-4">
+                <li>
+                  <a href="#" className="text-base text-gray-300 hover:text-white">
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-base text-gray-300 hover:text-white">
+                    FAQ
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-purple-300 tracking-wider uppercase">Légal</h3>
+              <ul className="mt-4 space-y-4">
+                <li>
+                  <a href="#" className="text-base text-gray-300 hover:text-white">
+                    Conditions d'utilisation
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-base text-gray-300 hover:text-white">
+                    Politique de confidentialité
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-purple-300 tracking-wider uppercase">Contact</h3>
+              <ul className="mt-4 space-y-4">
+                <li>
+                  <a href="tel:+689123456" className="text-base text-gray-300 hover:text-white">
+                    +689 12 34 56
+                  </a>
+                </li>
+                <li>
+                  <a href="mailto:contact@fenuasim.com" className="text-base text-gray-300 hover:text-white">
+                    contact@fenuasim.com
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-8 border-t border-gray-800 pt-8">
+            <p className="text-base text-gray-400 text-center">
+              &copy; {new Date().getFullYear()} Fenua SIM. Tous droits réservés.
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+} 
