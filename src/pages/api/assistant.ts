@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+// @ts-ignore
 import OpenAI from 'openai'
 import { createPayment } from '@/lib/createPayment'
 import { getPlans, getPlanById } from '@/utils/gptFunctions'
 
-const openai = new OpenAI({
+const openai = new (OpenAI as any)({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
