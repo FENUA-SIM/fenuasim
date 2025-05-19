@@ -44,16 +44,16 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col h-[500px]">
+    <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md mx-auto bg-white rounded-t-xl shadow-2xl border border-gray-200 flex flex-col h-[60vh] sm:bottom-4 sm:right-4 sm:left-auto sm:w-full sm:max-w-sm sm:rounded-xl">
       <div className="flex-1 overflow-y-auto p-4">
         {messages.map((msg, i) => (
           <div key={i} className={`mb-2 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-            <span className={`inline-block px-3 py-2 rounded-lg ${msg.role === 'user' ? 'bg-fenua-coral text-white' : 'bg-gray-100 text-gray-900'}`}>{msg.content}</span>
+            <span className={`inline-block px-3 py-2 rounded-lg ${msg.role === 'user' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-900'}`}>{msg.content}</span>
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={sendMessage} className="p-4 border-t flex gap-2">
+      <form onSubmit={sendMessage} className="p-4 border-t flex gap-2 bg-white">
         <input
           type="text"
           className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fenua-coral"
