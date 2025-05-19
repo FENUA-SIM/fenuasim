@@ -9,6 +9,9 @@ const openai = new (OpenAI as any)({
 })
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'GET') {
+    return res.status(200).json({ info: 'Assistant eSIM API. Utilisez POST pour discuter.' })
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' })
   const { message, email } = req.body
   if (!message) return res.status(400).json({ error: 'Message is required' })
