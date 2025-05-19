@@ -1,67 +1,113 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { Configuration, OpenAIApi } from 'openai'
+import OpenAI from 'openai'
 import { createPayment } from '@/lib/createPayment'
 import { getPlans, getPlanById } from '@/utils/gptFunctions'
 
-const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_API_KEY }))
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' })
-  const { messages, email } = req.body
-  if (!messages || !email) return res.status(400).json({ error: 'messages et email requis' })
+  const { message, email } = req.body
+  if (!message) return res.status(400).json({ error: 'Message is required' })
 
-  // Définir les fonctions utilisables par GPT
-  const functions = [
+  const messages = [
     {
-      name: 'getPlans',
-      description: 'Liste les forfaits eSIM disponibles pour un pays',
-      parameters: {
-        type: 'object',
-        properties: {
-          country: { type: 'string', description: 'Nom du pays' },
-        },
-        required: ['country'],
-      },
+      role: 'system',
+      content: `Tu es un assistant virtuel spécialisé dans la vente d'eSIM pour FENUA SIM. 
+      Tu dois aider les clients à choisir le meilleur forfait pour leurs besoins.
+      Tu dois toujours demander le pays de destination et la durée du séjour.
+      Tu dois proposer les forfaits les plus adaptés en fonction de leurs besoins.
+      Tu dois toujours vérifier que le client a bien reçu son eSIM par email après le paiement.
+      Tu dois être poli, professionnel et concis.`
     },
     {
-      name: 'createPayment',
-      description: 'Crée un paiement Stripe pour un plan eSIM',
-      parameters: {
-        type: 'object',
-        properties: {
-          plan_id: { type: 'string' },
-          email: { type: 'string' },
-        },
-        required: ['plan_id', 'email'],
-      },
-    },
+      role: 'user',
+      content: message
+    }
   ]
 
-  // Appel OpenAI avec Function Calling
-  const completion = await openai.createChatCompletion({
-    model: 'gpt-4-0613',
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4',
     messages,
-    functions,
-    function_call: 'auto',
+    functions: [
+      {
+        name: 'getPlans',
+        description: 'Récupère la liste des forfaits eSIM disponibles',
+        parameters: {
+          type: 'object',
+          properties: {
+            country: {
+              type: 'string',
+              description: 'Code pays ISO (ex: FR, US)'
+            }
+          },
+          required: ['country']
+        }
+      },
+      {
+        name: 'getPlanById',
+        description: 'Récupère les détails d\'un forfait spécifique',
+        parameters: {
+          type: 'object',
+          properties: {
+            planId: {
+              type: 'string',
+              description: 'ID du forfait'
+            }
+          },
+          required: ['planId']
+        }
+      },
+      {
+        name: 'createPayment',
+        description: 'Crée un paiement pour un forfait',
+        parameters: {
+          type: 'object',
+          properties: {
+            planId: {
+              type: 'string',
+              description: 'ID du forfait'
+            },
+            email: {
+              type: 'string',
+              description: 'Email du client'
+            }
+          },
+          required: ['planId', 'email']
+        }
+      }
+    ],
+    function_call: 'auto'
   })
 
-  const response = completion.data.choices[0].message
+  const response = completion.choices[0].message
 
-  // Si GPT veut appeler une fonction
   if (response.function_call) {
     const { name, arguments: args } = response.function_call
-    if (name === 'getPlans') {
-      const { country } = JSON.parse(args)
-      const plans = await getPlans(country)
-      return res.status(200).json({ role: 'function', name, data: plans })
-    }
-    if (name === 'createPayment') {
-      const { plan_id } = JSON.parse(args)
-      const payment = await createPayment(plan_id, email)
-      return res.status(200).json({ role: 'function', name, data: payment })
+    const parsedArgs = JSON.parse(args)
+
+    switch (name) {
+      case 'getPlans':
+        const plans = await getPlans(parsedArgs.country)
+        return res.status(200).json({ plans })
+
+      case 'getPlanById':
+        const plan = await getPlanById(parsedArgs.planId)
+        return res.status(200).json({ plan })
+
+      case 'createPayment':
+        if (!email) {
+          return res.status(400).json({ error: 'Email is required for payment' })
+        }
+        const paymentUrl = await createPayment(parsedArgs.planId, email)
+        return res.status(200).json({ paymentUrl })
+
+      default:
+        return res.status(400).json({ error: 'Invalid function call' })
     }
   }
 
-  // Sinon, simple réponse textuelle
-  return res.status(200).json({ role: 'assistant', content: response.content })
+  return res.status(200).json({ message: response.content })
 } 

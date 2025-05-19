@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import PackageCard from '@/components/shop/PackageCard'
 import type { Database } from '@/lib/supabase/config'
+import ChatWidget from '@/components/ChatWidget'
 
 const TOP_DESTINATIONS = ['États-Unis', 'France', 'Japon', 'Australie', 'Canada']
 
@@ -349,6 +350,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      <ChatWidget />
     </div>
   )
 } 
