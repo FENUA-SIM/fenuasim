@@ -19,7 +19,8 @@ export default async function handler(
       messages,
       temperature: 0.4
     });
-    res.status(200).json({ reply: completion.choices[0].message.content });
+    const reply = completion.choices[0]?.message?.content || "Je n'ai pas compris votre demande.";
+    res.status(200).json({ reply });
   } catch (err) {
     console.error("Erreur assistant GPT:", err);
     res.status(500).json({ error: "Erreur GPT" });
