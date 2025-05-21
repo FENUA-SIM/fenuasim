@@ -84,6 +84,8 @@ export default function PackageCard({
     }
   }
 
+  // console.log('pkggg',pkg)
+
   // Prix dynamique selon la devise
   let price = pkg.final_price_eur
   let symbol = '€'

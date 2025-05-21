@@ -32,7 +32,7 @@ function PaymentForm({ pkg, email }: CheckoutFormProps) {
             final_price_eur: pkg.price_eur
           }],
           email,
-          packageId: pkg.id
+          packageId: pkg.airalo_id
         }),
       })
 
