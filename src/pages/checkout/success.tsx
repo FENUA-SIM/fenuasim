@@ -9,6 +9,9 @@ export default function SuccessPage() {
     "loading" | "success" | "error"
   >("loading");
   const [orderDetails, setOrderDetails] = useState<any>(null);
+  const [emailStatus, setEmailStatus] = useState<
+    "pending" | "sending" | "sent" | "failed"
+  >("pending");
 
   useEffect(() => {
     if (!session_id) return;
@@ -39,7 +42,6 @@ export default function SuccessPage() {
           esim: esimData || null,
         });
 
-        console.log("orderdetails", orderDetails);
         setOrderStatus("success");
       } catch (error) {
         console.error("Error retrieving order details:", error);
@@ -50,10 +52,84 @@ export default function SuccessPage() {
     checkOrderStatus();
   }, [session_id]);
 
+  const sendEmail = async () => {
+    if (!orderDetails?.esim?.qr_code_url) {
+      console.log("No QR code available, skipping email");
+      return;
+    }
+
+    try {
+      setEmailStatus("sending");
+
+      const emailPayload = {
+        email: orderDetails.email,
+        customerName:
+          orderDetails.esim?.nom || orderDetails.esim?.prenom || "Client",
+        packageName: orderDetails.package_name,
+        destinationName:
+          extractDestinationName(orderDetails.package_name) || "Canada",
+        dataAmount: orderDetails.data_amount,
+        dataUnit: orderDetails.data_unit || "GB",
+        validityDays: orderDetails.validity_days,
+        qrCodeUrl: orderDetails.esim.qr_code_url,
+      };
+
+      const response = await fetch("/api/send-esim-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(emailPayload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setEmailStatus("sent");
+      } else {
+        console.error("Email sending failed:", result);
+        setEmailStatus("failed");
+      }
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      setEmailStatus("failed");
+    }
+  };
+
+  const extractDestinationName = (packageName: string) => {
+    if (!packageName) return "votre destination";
+    const destination = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("region="))
+      ?.split("=")[1];
+
+    return destination;
+  };
+
+  useEffect(() => {
+    if (
+      orderStatus === "success" &&
+      orderDetails?.esim?.qr_code_url &&
+      emailStatus === "pending"
+    ) {
+      const timer = setTimeout(() => {
+        sendEmail();
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [orderStatus, orderDetails, emailStatus]);
+
+  const resendEmail = async () => {
+    setEmailStatus("pending");
+    await sendEmail();
+  };
+
   if (orderStatus === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-fenua-purple mx-auto mb-4"></div>
           <h1 className="text-2xl font-bold mb-4">
             Traitement de votre commande...
           </h1>
@@ -71,7 +147,7 @@ export default function SuccessPage() {
           <p>Une erreur est survenue lors du traitement de votre commande.</p>
           <button
             onClick={() => router.push("/shop")}
-            className="mt-4 px-6 py-2 bg-fenua-purple text-white rounded-lg hover:opacity-90"
+            className="mt-4 px-6 py-2 bg-fenua-purple text-white bg-black rounded-lg hover:opacity-90"
           >
             Retour à la boutique
           </button>
@@ -95,6 +171,56 @@ export default function SuccessPage() {
               ? "Votre eSIM est prête à être installée"
               : "Votre eSIM est en cours de préparation"}
           </p>
+
+          {/* Email Status Indicator */}
+          {hasEsimData && (
+            <div className="mt-4 p-3 rounded-lg border">
+              {emailStatus === "sending" && (
+                <div className="flex items-center justify-center text-blue-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  Envoi de l'email en cours...
+                </div>
+              )}
+              {emailStatus === "sent" && (
+                <div className="flex items-center justify-center text-green-600">
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Email envoyé avec succès à {orderDetails.email}
+                </div>
+              )}
+              {emailStatus === "failed" && (
+                <div className="flex items-center justify-center text-red-600">
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Échec de l'envoi de l'email
+                  <button
+                    onClick={resendEmail}
+                    className="ml-2 text-sm underline hover:no-underline"
+                  >
+                    Réessayer
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {orderDetails && (
@@ -112,33 +238,16 @@ export default function SuccessPage() {
                       src={orderDetails.esim.qr_code_url}
                       alt="eSIM QR Code"
                       className="w-64 h-64 mx-auto"
+                      onError={(e) => {
+                        console.error("QR Code image failed to load");
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
                   </div>
 
-                  {/* Installation Methods */}
-                  {/* <div className="w-full max-w-md space-y-4">
-                    {orderDetails.esim.apple_installation_url && (
-                      <a
-                        href={orderDetails.esim.apple_installation_url}
-                        className="flex items-center justify-center w-full px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <span className="mr-2">
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                          >
-                            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.21 2.33-.91 3.57-.84 1.5.1 2.63.64 3.39 1.64-3.13 1.87-2.42 5.5.48 6.58-.57 1.5-1.31 2.99-2.52 4.79M12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.27 2.23-1.67 4.13-3.74 4.25" />
-                          </svg>
-                        </span>
-                        Installer sur iPhone
-                      </a>
-                    )}
-
-                    <div className="text-center">
+                  {/* ICCID Display */}
+                  {orderDetails.esim.sim_iccid && (
+                    <div className="text-center mb-4">
                       <p className="text-sm text-gray-600 mb-2">
                         Numéro ICCID de votre eSIM :
                       </p>
@@ -146,7 +255,7 @@ export default function SuccessPage() {
                         {orderDetails.esim.sim_iccid}
                       </p>
                     </div>
-                  </div> */}
+                  )}
                 </div>
               </div>
             )}
@@ -222,8 +331,7 @@ export default function SuccessPage() {
               <ol className="list-decimal list-inside space-y-3 text-gray-600">
                 <li>
                   <span className="font-medium">Scannez le code QR</span> avec
-                  l'appareil photo de votre téléphone ou utilisez le lien
-                  d'installation pour iPhone
+                  l'appareil photo de votre téléphone
                 </li>
                 <li>
                   <span className="font-medium">Suivez les instructions</span>{" "}
@@ -251,7 +359,7 @@ export default function SuccessPage() {
                 <div className="space-y-2">
                   <p>
                     <span className="font-medium">Email :</span>{" "}
-                    support@votredomaine.com
+                    hassanmehmoodedev171@gmail.com
                   </p>
                   <p>
                     <span className="font-medium">Téléphone :</span> +33 123 456
@@ -269,6 +377,16 @@ export default function SuccessPage() {
               >
                 Retour à la boutique
               </button>
+
+              {/* Email resend button if failed */}
+              {emailStatus === "failed" && hasEsimData && (
+                <button
+                  onClick={resendEmail}
+                  className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-lg hover:opacity-90"
+                >
+                  Renvoyer l'email
+                </button>
+              )}
 
               {/* Add download button if QR code is available */}
               {hasEsimData && (

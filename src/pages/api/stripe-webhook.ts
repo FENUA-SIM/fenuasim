@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { supabase } from "@/lib/supabaseClient";
+import { serialize } from "cookie";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-04-30.basil",
@@ -47,7 +48,8 @@ export default async function handler(
 
     try {
       const { packageId } = session.metadata || {};
-      if (!packageId) throw new Error("Package ID not found in session metadata");
+      if (!packageId)
+        throw new Error("Package ID not found in session metadata");
 
       const customerEmail =
         session.customer_details?.email ||
@@ -66,6 +68,15 @@ export default async function handler(
         );
       }
 
+      res.setHeader(
+        "Set-Cookie",
+        serialize("region", packageData.region, {
+          path: "/",
+          httpOnly: false, 
+          maxAge: 60 * 60 * 24, 
+        })
+      );
+      
       const edgeFunctionResponse = await fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-airalo-order`,
         {
@@ -124,7 +135,9 @@ export default async function handler(
         .single();
 
       if (orderError) {
-        throw new Error(`Failed to save order to database: ${orderError.message}`);
+        throw new Error(
+          `Failed to save order to database: ${orderError.message}`
+        );
       }
 
       return res.status(200).json({ received: true });
