@@ -182,7 +182,6 @@ export default function Shop() {
           return hasValidEur || hasValidUsd || hasValidXpf;
         });
 
-        console.log(validPackages);
         setPackages(validPackages);
       } catch (err) {
         setError("Erreur lors du chargement des forfaits");

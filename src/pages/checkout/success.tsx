@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "@/lib/supabaseClient";
-import { User, UserPlus, Shield, Star, ArrowRight, Mail, Smartphone } from "lucide-react";
+import {
+  User,
+  UserPlus,
+  Shield,
+  Star,
+  ArrowRight,
+  Mail,
+  Smartphone,
+} from "lucide-react";
 
 export default function SuccessPage() {
   const router = useRouter();
@@ -15,14 +23,15 @@ export default function SuccessPage() {
   >("pending");
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [showAccountCTA, setShowAccountCTA] = useState(false);
+  const [packageData, setPackageData] = useState<any>(null);
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkUserStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setIsUserLoggedIn(!!user);
-      
-      // Show account CTA after 3 seconds if user is not logged in
+
       if (!user) {
         setTimeout(() => {
           setShowAccountCTA(true);
@@ -44,7 +53,10 @@ export default function SuccessPage() {
           .eq("stripe_session_id", session_id)
           .maybeSingle();
 
-        if (orderError) throw orderError;
+        if (orderError) {
+          console.log(orderError);
+          throw orderError;
+        }
         if (!orderData) return setOrderStatus("error");
 
         const { data: esimData, error: esimError } = await supabase
@@ -55,7 +67,17 @@ export default function SuccessPage() {
           .limit(1)
           .maybeSingle();
 
-        if (esimError) throw esimError;
+          const { data: packageData, error: packageError } = await supabase
+          .from("airalo_packages")
+          .select("*")
+          .eq("id", esimData.package_id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+          setPackageData(packageData);
+
+        if (packageError) throw packageError;
 
         setOrderDetails({
           ...orderData,
@@ -86,9 +108,7 @@ export default function SuccessPage() {
         customerName:
           orderDetails.esim?.nom || orderDetails.esim?.prenom || "Client",
         packageName: orderDetails.package_name,
-        destinationName:
-          extractDestinationName(orderDetails.package_name) || "Canada",
-        dataAmount: orderDetails.data_amount,
+        destinationName: packageData.region,
         dataUnit: orderDetails.data_unit || "GB",
         validityDays: orderDetails.validity_days,
         qrCodeUrl: orderDetails.esim.qr_code_url,
@@ -116,16 +136,6 @@ export default function SuccessPage() {
     }
   };
 
-  const extractDestinationName = (packageName: string) => {
-    if (!packageName) return "votre destination";
-    const destination = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("region="))
-      ?.split("=")[1];
-
-    return destination;
-  };
-
   useEffect(() => {
     if (
       orderStatus === "success" &&
@@ -148,13 +158,13 @@ export default function SuccessPage() {
   const handleCreateAccount = () => {
     // Store order email in session storage to pre-fill registration form
     if (orderDetails?.email) {
-      sessionStorage.setItem('prefilledEmail', orderDetails.email);
+      sessionStorage.setItem("prefilledEmail", orderDetails.email);
     }
-    router.push('/login');
+    router.push("/login");
   };
 
   const handleSignIn = () => {
-    router.push('/login');
+    router.push("/login");
   };
 
   if (orderStatus === "loading") {
@@ -165,7 +175,9 @@ export default function SuccessPage() {
           <h1 className="text-2xl font-bold mb-4">
             Traitement de votre commande...
           </h1>
-          <p className="text-gray-600">Veuillez patienter pendant que nous finalisons votre commande.</p>
+          <p className="text-gray-600">
+            Veuillez patienter pendant que nous finalisons votre commande.
+          </p>
         </div>
       </div>
     );
@@ -176,7 +188,9 @@ export default function SuccessPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4 text-red-600">Erreur</h1>
-          <p className="text-gray-600 mb-4">Une erreur est survenue lors du traitement de votre commande.</p>
+          <p className="text-gray-600 mb-4">
+            Une erreur est survenue lors du traitement de votre commande.
+          </p>
           <button
             onClick={() => router.push("/shop")}
             className="px-6 py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg hover:opacity-90 transition-all"
@@ -230,8 +244,16 @@ export default function SuccessPage() {
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              <svg
+                className="w-8 h-8 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <h1 className="text-4xl font-bold text-gray-800 mb-2">
@@ -254,16 +276,32 @@ export default function SuccessPage() {
                 )}
                 {emailStatus === "sent" && (
                   <div className="flex items-center justify-center text-green-600">
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     Email envoyé avec succès à {orderDetails.email}
                   </div>
                 )}
                 {emailStatus === "failed" && (
                   <div className="flex items-center justify-center text-red-600">
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     Échec de l'envoi de l'email
                     <button
@@ -295,7 +333,8 @@ export default function SuccessPage() {
                           Créez votre espace client
                         </h3>
                         <p className="text-gray-600 mb-4">
-                          Gérez toutes vos eSIM depuis un seul endroit et profitez d'avantages exclusifs
+                          Gérez toutes vos eSIM depuis un seul endroit et
+                          profitez d'avantages exclusifs
                         </p>
                         <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                           <div className="flex items-center">
@@ -405,7 +444,9 @@ export default function SuccessPage() {
                   </div>
                   <div className="bg-white/80 p-4 rounded-xl">
                     <p className="text-gray-600 text-sm mb-1">Email</p>
-                    <p className="font-semibold text-gray-800">{orderDetails.email}</p>
+                    <p className="font-semibold text-gray-800">
+                      {orderDetails.email}
+                    </p>
                   </div>
                   <div className="bg-white/80 p-4 rounded-xl">
                     <p className="text-gray-600 text-sm mb-1">Statut</p>
@@ -416,7 +457,9 @@ export default function SuccessPage() {
                     </p>
                   </div>
                   <div className="bg-white/80 p-4 rounded-xl">
-                    <p className="text-gray-600 text-sm mb-1">Date de commande</p>
+                    <p className="text-gray-600 text-sm mb-1">
+                      Date de commande
+                    </p>
                     <p className="font-semibold text-gray-800">
                       {new Date(orderDetails.created_at).toLocaleDateString(
                         "fr-FR",
@@ -442,8 +485,13 @@ export default function SuccessPage() {
                       1
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 mb-1">Scannez le code QR</h3>
-                      <p className="text-gray-600 text-sm">Utilisez l'appareil photo de votre téléphone pour scanner le code QR</p>
+                      <h3 className="font-semibold text-gray-800 mb-1">
+                        Scannez le code QR
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Utilisez l'appareil photo de votre téléphone pour
+                        scanner le code QR
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4 p-4 bg-white/80 rounded-xl">
@@ -451,8 +499,12 @@ export default function SuccessPage() {
                       2
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 mb-1">Suivez les instructions</h3>
-                      <p className="text-gray-600 text-sm">Ajoutez l'eSIM à votre appareil en suivant les étapes</p>
+                      <h3 className="font-semibold text-gray-800 mb-1">
+                        Suivez les instructions
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Ajoutez l'eSIM à votre appareil en suivant les étapes
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4 p-4 bg-white/80 rounded-xl">
@@ -460,8 +512,12 @@ export default function SuccessPage() {
                       3
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 mb-1">Activez l'eSIM</h3>
-                      <p className="text-gray-600 text-sm">Sélectionnez "Données cellulaires" dans les paramètres</p>
+                      <h3 className="font-semibold text-gray-800 mb-1">
+                        Activez l'eSIM
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Sélectionnez "Données cellulaires" dans les paramètres
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4 p-4 bg-white/80 rounded-xl">
@@ -469,8 +525,13 @@ export default function SuccessPage() {
                       4
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 mb-1">Activez l'itinérance</h3>
-                      <p className="text-gray-600 text-sm">Activez l'itinérance si nécessaire pour utiliser votre forfait</p>
+                      <h3 className="font-semibold text-gray-800 mb-1">
+                        Activez l'itinérance
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Activez l'itinérance si nécessaire pour utiliser votre
+                        forfait
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -478,7 +539,9 @@ export default function SuccessPage() {
 
               {/* Support Information */}
               <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Besoin d'aide ?</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                  Besoin d'aide ?
+                </h2>
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl">
                   <p className="mb-4 text-gray-700">
                     Si vous rencontrez des difficultés avec l'installation de
@@ -489,11 +552,17 @@ export default function SuccessPage() {
                       <Mail className="w-5 h-5 text-purple-600" />
                       <div>
                         <p className="font-semibold text-gray-800">Email</p>
-                        <p className="text-gray-600">hassanmehmoodedev171@gmail.com</p>
+                        <p className="text-gray-600">
+                          hassanmehmoodedev171@gmail.com
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-5 h-5 text-purple-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
                         <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                       </svg>
                       <div>

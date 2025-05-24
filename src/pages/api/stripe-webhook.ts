@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { supabase } from "@/lib/supabaseClient";
-import { serialize } from "cookie";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-04-30.basil",
@@ -67,15 +66,6 @@ export default async function handler(
           `Failed to retrieve package data: ${packageError?.message || "not found"}`
         );
       }
-
-      res.setHeader(
-        "Set-Cookie",
-        serialize("region", packageData.region, {
-          path: "/",
-          httpOnly: false, 
-          maxAge: 60 * 60 * 24, 
-        })
-      );
       
       const edgeFunctionResponse = await fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-airalo-order`,
