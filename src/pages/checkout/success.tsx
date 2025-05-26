@@ -553,7 +553,7 @@ export default function SuccessPage() {
                       <div>
                         <p className="font-semibold text-gray-800">Email</p>
                         <p className="text-gray-600">
-                          hassanmehmoodedev171@gmail.com
+                          sav@fenuasim.com
                         </p>
                       </div>
                     </div>
@@ -567,7 +567,7 @@ export default function SuccessPage() {
                       </svg>
                       <div>
                         <p className="font-semibold text-gray-800">Téléphone</p>
-                        <p className="text-gray-600">+33 123 456 789</p>
+                        <p className="text-gray-600">+33 7 56 86 08 01</p>
                       </div>
                     </div>
                   </div>
