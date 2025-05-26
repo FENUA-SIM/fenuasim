@@ -58,7 +58,7 @@ export default async function handler(
 
     // Email options
     const mailOptions = {
-      from: `"eSIM Service" <${process.env.BREVO_SMTP_USER}`,
+      from: `"eSIM Service" <${process.env.FROM_EMAIL}`,
       to: email,
       subject: `Votre eSIM pour ${destinationName} est prête ! 🌐`,
       html: emailHTML,
