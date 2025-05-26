@@ -27,6 +27,9 @@ interface DestinationCardProps {
 const TOP_DESTINATIONS = [
   "France", 
   "Canada",
+  "United States",
+  "Australia",
+  "New Zealand"
 ];
 
 function generateSlug(name: string): string {

@@ -97,7 +97,7 @@ export default function PackageCard({
     symbol = '$'
   }
 
-  const countryCode = getCountryCode(pkg.region_fr || null)
+  const countryCode = getCountryCode(pkg.country || null)
 
   return (
     <div

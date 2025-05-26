@@ -6,7 +6,14 @@ import PackageCard from '@/components/shop/PackageCard'
 import type { Database } from '@/lib/supabase/config'
 import ChatWidget from '@/components/ChatWidget'
 
-const TOP_DESTINATIONS = ['États-Unis', 'France', 'Japon', 'Australie', 'Canada']
+const TOP_DESTINATIONS = [
+  "France", 
+  "Canada",
+  "United States",
+  "Australia",
+  "New Zealand"
+];
+
 
 type Package = Database['public']['Tables']['airalo_packages']['Row']
 

@@ -269,13 +269,7 @@ export default function RegionPage() {
           ) : (
             (() => {
               const region = packages[0]?.region_fr || "";
-              const code =
-                getCountryCode(region) ||
-                region
-                  .normalize("NFD")
-                  .replace(/[^a-zA-Z]/g, "")
-                  .toLowerCase()
-                  .slice(0, 2);
+              const code = packages[0]?.country?.toLowerCase() || "";
               return (
                 <img
                   src={`https://flagcdn.com/w160/${code}.png`}

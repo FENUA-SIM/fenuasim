@@ -221,7 +221,7 @@ export default function Account() {
                 href="/"
                 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent"
               >
-                FEUNA . SIM
+                FENUA . SIM
               </Link>
             </div>
             <div className="flex items-center space-x-4">

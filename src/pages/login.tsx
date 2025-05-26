@@ -225,7 +225,7 @@ export default function Login() {
           <div className="mx-auto w-16 h-16 bg-gradient-to-r from-purple-600 to-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Bienvenue</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">FENUA SIM</h2>
           <p className="text-gray-600">
             Connectez-vous pour accéder à votre compte eSIM
           </p>
@@ -289,7 +289,7 @@ export default function Login() {
                   name="email"
                   type="email"
                   required
-                  className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors placeholder:text-gray-600"
                   placeholder="votre@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -339,7 +339,7 @@ export default function Login() {
                     name="email"
                     type="email"
                     required
-                    className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors placeholder:text-gray-600"
                     placeholder="votre@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

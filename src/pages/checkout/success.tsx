@@ -67,7 +67,7 @@ export default function SuccessPage() {
           .limit(1)
           .maybeSingle();
 
-          const { data: packageData, error: packageError } = await supabase
+        const { data: packageData, error: packageError } = await supabase
           .from("airalo_packages")
           .select("*")
           .eq("id", esimData.package_id)
@@ -75,7 +75,7 @@ export default function SuccessPage() {
           .limit(1)
           .maybeSingle();
 
-          setPackageData(packageData);
+        setPackageData(packageData);
 
         if (packageError) throw packageError;
 
