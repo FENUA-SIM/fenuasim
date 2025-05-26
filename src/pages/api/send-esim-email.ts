@@ -35,21 +35,13 @@ export default async function handler(
       });
     }
 
-    // Create transporter
-    // const transporter = nodemailer.createTransport({
-    //   service: 'gmail',
-    //   auth: {
-    //     user: process.env.GMAIL_USER,
-    //     pass: process.env.GMAIL_APP_PASSWORD,
-    //   },
-    // });
     const transporter = nodemailer.createTransport({
-      host: "smtp.office365.com",
+      host: "smtp-relay.brevo.com",
       port: 587,
-      secure: false, 
+      secure: false,
       auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
+        user: process.env.BREVO_SMTP_USER,
+        pass: process.env.BREVO_SMTP_PASS,
       },
     });
 
@@ -66,7 +58,7 @@ export default async function handler(
 
     // Email options
     const mailOptions = {
-      from: `"eSIM Service" <${process.env.GMAIL_USER}>`,
+      from: `"eSIM Service" <${process.env.BREVO_SMTP_USER}`,
       to: email,
       subject: `Votre eSIM pour ${destinationName} est prête ! 🌐`,
       html: emailHTML,
