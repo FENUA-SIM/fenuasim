@@ -58,7 +58,7 @@ export default async function handler(
 
     // Email options
     const mailOptions = {
-      from: `"eSIM Service" <${process.env.FROM_EMAIL}`,
+      from: `"eSIM Service" <hello@fenuasim.com>`,
       to: email,
       subject: `Votre eSIM pour ${destinationName} est prête ! 🌐`,
       html: emailHTML,
@@ -78,6 +78,12 @@ export default async function handler(
         Cordialement,
         L'équipe eSIM Service
       `,
+      headers: {
+        "List-Unsubscribe":
+          "<mailto:unsubscribe@fenuasim.com>, <https://fenuasim.com/unsubscribe>",
+        Precedence: "bulk",
+        "X-Mailer": "FenuaSIM Mailer 1.0",
+      },
     };
 
     // Send email
