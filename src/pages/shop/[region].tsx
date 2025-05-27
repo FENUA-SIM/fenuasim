@@ -159,20 +159,20 @@ export default function RegionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-purple-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">{error}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">{error}</h2>
           <button
             onClick={() => router.push("/shop")}
-            className="bg-purple-600 text-white px-6 py-2 rounded-xl hover:bg-purple-700 transition-colors"
+            className="bg-purple-600 text-white px-4 sm:px-6 py-2 rounded-xl hover:bg-purple-700 transition-colors text-sm sm:text-base"
           >
             Retour à la boutique
           </button>
@@ -254,11 +254,11 @@ export default function RegionPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8 lg:space-y-10">
       {/* Bloc 1 : Présentation destination (2 colonnes) */}
-      <section className="bg-white rounded-2xl shadow-sm p-8 flex flex-col md:flex-row gap-8 items-center md:items-start">
+      <section className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8 items-center md:items-start">
         {/* Image ou drapeau à gauche */}
-        <div className="w-40 h-40 flex-shrink-0 flex items-center justify-center rounded-xl overflow-hidden bg-gray-50 border border-gray-200 shadow">
+        <div className="w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 flex-shrink-0 flex items-center justify-center rounded-xl overflow-hidden bg-gray-50 border border-gray-200 shadow relative">
           {packages[0]?.region_image_url ? (
             <Image
               src={packages[0].region_image_url}
@@ -284,11 +284,11 @@ export default function RegionPage() {
           )}
         </div>
         {/* Titre + description à droite */}
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold mb-4 text-purple-800">
+        <div className="flex-1 text-center md:text-left">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 text-purple-800">
             {packages[0]?.region_fr}
           </h1>
-          <p className="text-purple-700 text-lg leading-relaxed">
+          <p className="text-purple-700 text-base sm:text-lg leading-relaxed">
             {packages[0]?.region_description ||
               "Découvrez nos forfaits eSIM pour cette destination."}
           </p>
@@ -297,8 +297,8 @@ export default function RegionPage() {
 
       {/* Bloc 2 : Forfaits disponibles, vignettes horizontales */}
       <section>
-        <h2 className="text-2xl font-bold mb-6">Forfaits disponibles</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 px-1">Forfaits disponibles</h2>
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {packages
             .filter((pkg) => {
               let price = pkg.final_price_eur;
@@ -319,31 +319,30 @@ export default function RegionPage() {
               return (
                 <div
                   key={pkg.id}
-                  className={`min-w-[260px] max-w-xs bg-white rounded-xl border-2 p-6 flex flex-col justify-between transition-all duration-200 ${
+                  className={`w-full bg-white rounded-xl border-2 p-4 sm:p-5 lg:p-6 flex flex-col justify-between transition-all duration-200 cursor-pointer ${
                     selectedPackage?.id === pkg.id
                       ? "border-purple-500 shadow-lg"
                       : "border-gray-100 hover:border-purple-300"
                   }`}
                   onClick={() => setSelectedPackage(pkg)}
-                  style={{ cursor: "pointer" }}
                 >
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold mb-2 text-purple-800">
+                    <h3 className="text-base sm:text-lg font-bold mb-2 text-purple-800 leading-tight">
                       {pkg.name}
                     </h3>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className="text-xs sm:text-sm bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
                         {pkg.data_amount}{" "}
                         {pkg.data_unit === "GB" ? "Go" : pkg.data_unit}
                       </span>
-                      <span className="text-sm bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full font-semibold">
+                      <span className="text-xs sm:text-sm bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full font-semibold">
                         {pkg.duration}{" "}
                         {pkg.duration_unit === "Days"
                           ? "jours"
                           : pkg.duration_unit}
                       </span>
                     </div>
-                    <div className="text-xl font-bold text-purple-700 mb-2">
+                    <div className="text-lg sm:text-xl font-bold text-purple-700 mb-2">
                       {price && price > 0 ? (
                         `${price} ${symbol}`
                       ) : (
@@ -356,7 +355,7 @@ export default function RegionPage() {
                       e.stopPropagation();
                       handleAcheter(pkg);
                     }}
-                    className="w-full py-2 mt-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300"
+                    className="w-full py-2 sm:py-2.5 mt-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-sm sm:text-base"
                   >
                     Acheter
                   </button>
@@ -370,8 +369,8 @@ export default function RegionPage() {
       {selectedPackage &&
       typeof selectedPackage.data_amount === "number" &&
       selectedPackage.data_unit ? (
-        <section className="bg-white rounded-2xl shadow-sm p-8">
-          <h2 className="text-2xl font-bold mb-6">
+        <section className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center sm:text-left">
             Que faire avec {selectedPackage.data_amount}{" "}
             {selectedPackage.data_unit?.toLowerCase() === "gb"
               ? "Go"
@@ -384,30 +383,30 @@ export default function RegionPage() {
               selectedPackage.data_unit
             );
             return (
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
-                  <Camera className="w-8 h-8 mx-auto mb-3 text-purple-600" />
-                  <h3 className="font-semibold mb-1">Photos</h3>
-                  <p className="text-purple-700">{tips.photo} photos</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 sm:p-4 lg:p-6 text-center">
+                  <Camera className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-2 sm:mb-3 text-purple-600" />
+                  <h3 className="font-semibold mb-1 text-sm sm:text-base">Photos</h3>
+                  <p className="text-purple-700 text-xs sm:text-sm">{tips.photo} photos</p>
                 </div>
-                <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl p-6 text-center">
-                  <Globe className="w-8 h-8 mx-auto mb-3 text-purple-600" />
-                  <h3 className="font-semibold mb-1">Navigation</h3>
-                  <p className="text-purple-700">{tips.web} heures</p>
+                <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl p-3 sm:p-4 lg:p-6 text-center">
+                  <Globe className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-2 sm:mb-3 text-purple-600" />
+                  <h3 className="font-semibold mb-1 text-sm sm:text-base">Navigation</h3>
+                  <p className="text-purple-700 text-xs sm:text-sm">{tips.web} heures</p>
                 </div>
-                <div className="bg-gradient-to-br from-pink-100 to-red-100 rounded-xl p-6 text-center">
-                  <Video className="w-8 h-8 mx-auto mb-3 text-purple-600" />
-                  <h3 className="font-semibold mb-1">Vidéo</h3>
-                  <p className="text-purple-700">{tips.video} heures</p>
+                <div className="bg-gradient-to-br from-pink-100 to-red-100 rounded-xl p-3 sm:p-4 lg:p-6 text-center">
+                  <Video className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-2 sm:mb-3 text-purple-600" />
+                  <h3 className="font-semibold mb-1 text-sm sm:text-base">Vidéo</h3>
+                  <p className="text-purple-700 text-xs sm:text-sm">{tips.video} heures</p>
                 </div>
-                <div className="bg-gradient-to-br from-red-100 to-orange-100 rounded-xl p-6 text-center">
-                  <MessageSquare className="w-8 h-8 mx-auto mb-3 text-purple-600" />
-                  <h3 className="font-semibold mb-1">Messages</h3>
-                  <p className="text-purple-700">{tips.chat} messages</p>
+                <div className="bg-gradient-to-br from-red-100 to-orange-100 rounded-xl p-3 sm:p-4 lg:p-6 text-center">
+                  <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-2 sm:mb-3 text-purple-600" />
+                  <h3 className="font-semibold mb-1 text-sm sm:text-base">Messages</h3>
+                  <p className="text-purple-700 text-xs sm:text-sm">{tips.chat} messages</p>
                 </div>
-                <div className="bg-gradient-to-br from-orange-100 to-orange-50 rounded-xl p-6 text-center">
+                <div className="bg-gradient-to-br from-orange-100 to-orange-50 rounded-xl p-3 sm:p-4 lg:p-6 text-center col-span-2 sm:col-span-1">
                   <svg
-                    className="w-8 h-8 mx-auto mb-3 text-purple-600"
+                    className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-2 sm:mb-3 text-purple-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -420,8 +419,8 @@ export default function RegionPage() {
                       d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                     />
                   </svg>
-                  <h3 className="font-semibold mb-1">Appels</h3>
-                  <p className="text-purple-700">{tips.calls} heures</p>
+                  <h3 className="font-semibold mb-1 text-sm sm:text-base">Appels</h3>
+                  <p className="text-purple-700 text-xs sm:text-sm">{tips.calls} heures</p>
                   <p className="text-xs text-purple-700 mt-1">
                     WhatsApp/Messenger
                   </p>
@@ -433,42 +432,42 @@ export default function RegionPage() {
       ) : null}
 
       {/* Bloc 4 : Comment activer ma eSIM ? */}
-      <section className="bg-white rounded-2xl shadow-sm p-8">
-        <h2 className="text-2xl font-bold mb-6">Comment activer ma eSIM ?</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <section className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center sm:text-left">Comment activer ma eSIM ?</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="flex flex-col items-center text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-xl font-bold text-purple-600">1</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+              <span className="text-lg sm:text-xl font-bold text-purple-600">1</span>
             </div>
-            <h3 className="font-semibold mb-2">Scanner le QR code</h3>
-            <p className="text-purple-700">
+            <h3 className="font-semibold mb-2 text-sm sm:text-base">Scanner le QR code</h3>
+            <p className="text-purple-700 text-xs sm:text-sm">
               Scannez le QR code reçu par email.
             </p>
           </div>
           <div className="flex flex-col items-center text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-xl font-bold text-purple-600">2</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+              <span className="text-lg sm:text-xl font-bold text-purple-600">2</span>
             </div>
-            <h3 className="font-semibold mb-2">Aller dans les réglages</h3>
-            <p className="text-purple-700">
+            <h3 className="font-semibold mb-2 text-sm sm:text-base">Aller dans les réglages</h3>
+            <p className="text-purple-700 text-xs sm:text-sm">
               Ouvrez les réglages de votre téléphone.
             </p>
           </div>
           <div className="flex flex-col items-center text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-xl font-bold text-purple-600">3</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+              <span className="text-lg sm:text-xl font-bold text-purple-600">3</span>
             </div>
-            <h3 className="font-semibold mb-2">Activer la ligne eSIM</h3>
-            <p className="text-purple-700">
+            <h3 className="font-semibold mb-2 text-sm sm:text-base">Activer la ligne eSIM</h3>
+            <p className="text-purple-700 text-xs sm:text-sm">
               Ajoutez et activez la ligne eSIM dans les réglages.
             </p>
           </div>
           <div className="flex flex-col items-center text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-xl font-bold text-purple-600">4</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+              <span className="text-lg sm:text-xl font-bold text-purple-600">4</span>
             </div>
-            <h3 className="font-semibold mb-2">Confirmation</h3>
-            <p className="text-purple-700">
+            <h3 className="font-semibold mb-2 text-sm sm:text-base">Confirmation</h3>
+            <p className="text-purple-700 text-xs sm:text-sm">
               Votre eSIM est prête à être utilisée !
             </p>
           </div>
@@ -477,12 +476,12 @@ export default function RegionPage() {
 
       {/* Modal panier */}
       {showCartModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
-            <h2 className="text-2xl font-bold mb-4 text-purple-700">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 max-w-sm w-full text-center">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-purple-700">
               Ajouté au panier !
             </h2>
-            <p className="mb-6">
+            <p className="mb-6 text-sm sm:text-base">
               Le forfait{" "}
               <span className="font-semibold">
                 {selectedPackage?.data_amount} {selectedPackage?.data_unit}
@@ -491,13 +490,13 @@ export default function RegionPage() {
             </p>
             <div className="flex flex-col gap-3">
               <button
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-600 transition-all duration-300"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-600 transition-all duration-300 text-sm sm:text-base"
                 onClick={() => router.push("/cart")}
               >
                 Voir le panier
               </button>
               <button
-                className="w-full border border-purple-200 text-purple-700 py-3 px-4 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-300"
+                className="w-full border border-purple-200 text-purple-700 py-3 px-4 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-300 text-sm sm:text-base"
                 onClick={() => setShowCartModal(false)}
               >
                 Continuer mes achats
@@ -509,8 +508,8 @@ export default function RegionPage() {
 
       {/* Pop-up récapitulatif + formulaire avant Stripe */}
       {showRecapModal && selectedPackage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md mx-auto relative animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 w-full max-w-md mx-auto relative animate-fade-in">
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold"
               onClick={() => setShowRecapModal(false)}
@@ -518,7 +517,7 @@ export default function RegionPage() {
             >
               ×
             </button>
-            <h2 className="text-2xl font-bold mb-4 text-purple-700">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-purple-700 pr-8">
               Récapitulatif de la commande
             </h2>
             <div className="mb-4">
@@ -573,7 +572,11 @@ export default function RegionPage() {
                   placeholder="Nom *"
                   value={form.nom}
                   onChange={handleFormChange}
-                  className="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500"
+                  className="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 placeholder-gray-500 text-base"
+                  style={{
+                    WebkitTextFillColor: '#111827',
+                    color: '#111827'
+                  } as React.CSSProperties}
                   required
                 />
                 <input
@@ -582,7 +585,12 @@ export default function RegionPage() {
                   placeholder="Prénom *"
                   value={form.prenom}
                   onChange={handleFormChange}
-                  className="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500"
+                  className="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 placeholder-gray-500 text-base"
+                  style={{
+                    WebkitTextFillColor: '#111827',
+                    opacity: 1,
+                    color: '#111827'
+                  }}
                   required
                 />
               </div>
@@ -592,7 +600,11 @@ export default function RegionPage() {
                 placeholder="Email *"
                 value={form.email}
                 onChange={handleFormChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 placeholder-gray-500 text-base"
+                style={{
+                  WebkitTextFillColor: '#111827',
+                  color: '#111827'
+                } as React.CSSProperties}
                 required
               />
               <input
@@ -601,7 +613,11 @@ export default function RegionPage() {
                 placeholder="Code promo (optionnel)"
                 value={form.codePromo}
                 onChange={handleFormChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500 text-base"
+                style={{
+                  WebkitTextFillColor: '#111827',
+                  color: '#111827'
+                } as React.CSSProperties}
               />
               <input
                 type="text"
@@ -609,14 +625,18 @@ export default function RegionPage() {
                 placeholder="Code partenaire (optionnel)"
                 value={form.codePartenaire}
                 onChange={handleFormChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500 text-base"
+                style={{
+                  WebkitTextFillColor: '#111827',
+                  color: '#111827'
+                } as React.CSSProperties}
               />
               {formError && (
                 <div className="text-red-500 text-sm mb-2">{formError}</div>
               )}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white py-3 px-4 rounded-xl font-bold text-lg shadow-md hover:from-purple-700 hover:to-orange-600 transition"
+                className="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white py-3 px-4 rounded-xl font-bold text-base sm:text-lg shadow-md hover:from-purple-700 hover:to-orange-600 transition"
               >
                 Payer
               </button>
