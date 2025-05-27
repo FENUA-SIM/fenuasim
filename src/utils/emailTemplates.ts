@@ -109,7 +109,7 @@ export function createEsimEmailHTML({
             Cet email contient votre eSIM personnalisée. Ne le partagez avec personne.
           </p>
           <p style="margin: 0;">
-            Pour toute question, contactez notre support à <strong>hassanmehmoodedev171@gmail.com</strong>
+            Pour toute question, contactez notre support à <strong>sav@fenuasim.com</strong>
           </p>
         </div>
       </div>
