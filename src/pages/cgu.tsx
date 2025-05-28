@@ -1,4 +1,4 @@
-xport default function CGU() {
+export default function CGU() {
   return (
     <div className="max-w-4xl mx-auto py-16 px-4">
       <h1 className="text-3xl font-bold mb-8 text-center">Conditions Générales d'Utilisation</h1>
