@@ -282,78 +282,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            <div>
-              <h3 className="text-xs sm:text-sm font-semibold text-purple-300 tracking-wider uppercase">Services</h3>
-              <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-4">
-                <li>
-                  <Link href="/shop" className="text-sm sm:text-base text-gray-300 hover:text-white">
-                    Forfaits
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard" className="text-sm sm:text-base text-gray-300 hover:text-white">
-                    Mon espace
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-semibold text-purple-300 tracking-wider uppercase">Support</h3>
-              <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-4">
-                <li>
-                  <a href="#" className="text-sm sm:text-base text-gray-300 hover:text-white">
-                    Contact
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-sm sm:text-base text-gray-300 hover:text-white">
-                    FAQ
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-semibold text-purple-300 tracking-wider uppercase">Légal</h3>
-              <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-4">
-                <li>
-                  <a href="#" className="text-sm sm:text-base text-gray-300 hover:text-white">
-                    Conditions d'utilisation
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-sm sm:text-base text-gray-300 hover:text-white">
-                    Politique de confidentialité
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-semibold text-purple-300 tracking-wider uppercase">Contact</h3>
-              <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-4">
-                <li>
-                  <a href="tel:+689123456" className="text-sm sm:text-base text-gray-300 hover:text-white">
-                    +689 12 34 56
-                  </a>
-                </li>
-                <li>
-                  <a href="mailto:contact@fenuasim.com" className="text-sm sm:text-base text-gray-300 hover:text-white break-all">
-                    contact@fenuasim.com
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-6 sm:mt-8 border-t border-gray-800 pt-6 sm:pt-8">
-            <p className="text-sm sm:text-base text-gray-400 text-center">
-              &copy; {new Date().getFullYear()} Fenua SIM. Tous droits réservés.
-            </p>
-          </div>
-        </div>
-      </footer>
+    
       <ChatWidget />
     </div>
   )
