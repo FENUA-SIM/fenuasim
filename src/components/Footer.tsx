@@ -1,4 +1,4 @@
-"use client"
+se client"
 
 import Link from 'next/link'
 import Image from 'next/image'
