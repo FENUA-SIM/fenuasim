@@ -20,7 +20,7 @@ export default function Contact() {
       <div className="mt-10 text-center text-gray-600">
         <p>Ou contactez-nous directement :</p>
         <p className="mt-2">📧 <a href="mailto:contact@fenuasim.com" className="text-purple-600 hover:underline">contact@fenuasim.com</a></p>
-        <p className="mt-1">📞 <a href="tel:+689123456" className="text-purple-600 hover:underline">+689 12 34 56</a></p>
+        <p className="mt-1">📞 <a href="tel:+33756860601" className="text-purple-600 hover:underline">+33 7 56 86 06 01</a></p>
       </div>
     </div>
   )
