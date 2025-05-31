@@ -14,16 +14,16 @@ export default function Navbar() {
 
   return (
     <header className="w-full bg-white/80 backdrop-blur border-b border-gray-100 shadow-sm sticky top-0 z-50">
-      <nav className="container mx-auto flex items-center justify-between px-4" style={{ height: '72px' }}>
+      <nav className="container mx-auto flex items-center justify-between px-4" style={{ height: '88px' }}>
         {/* Logo */}
-        <Link href="/" className="flex items-center" style={{ height: '64px' }}>
-          <div style={{ height: '64px', width: '64px', overflow: 'visible', display: 'flex', alignItems: 'center' }}>
+        <Link href="/" className="flex items-center" style={{ height: '80px' }}>
+          <div style={{ height: '80px', width: '80px', overflow: 'visible', display: 'flex', alignItems: 'center' }}>
             <Image 
               src="/logo.png" 
               alt="FENUA SIM" 
-              width={100} 
-              height={100} 
-              style={{ transform: 'scale(1.4)', objectFit: 'contain' }} 
+              width={120} 
+              height={120} 
+              style={{ transform: 'scale(1.5)', objectFit: 'contain' }} 
               priority={true}
             />
           </div>
