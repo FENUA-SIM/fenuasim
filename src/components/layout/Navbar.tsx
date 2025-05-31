@@ -62,17 +62,20 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {/* Menu Mobile */}
+        {/* Bouton Menu Mobile */}
         <div className="md:hidden">
-          <button onClick={() => setMenuOpen(!menuOpen)} className="p-2">
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          <button onClick={() => setMenuOpen(true)} className="p-2">
+            <Menu size={26} />
           </button>
         </div>
       </nav>
 
-      {/* Menu Mobile déroulant */}
+      {/* Menu Mobile plein écran */}
       {menuOpen && (
-        <div className="md:hidden absolute top-[88px] left-0 w-full bg-white shadow-lg z-40 p-4 space-y-4 text-gray-700 font-medium">
+        <div className="fixed inset-0 bg-white z-50 p-6 pt-24 flex flex-col gap-6 text-gray-800 font-medium text-lg overflow-y-auto">
+          <button onClick={() => setMenuOpen(false)} className="absolute top-6 right-6">
+            <X size={28} />
+          </button>
           <Link href="/" onClick={() => setMenuOpen(false)}>Accueil</Link>
           <Link href="/shop" onClick={() => setMenuOpen(false)}>Nos eSIM</Link>
           <Link href="/compatibilite" onClick={() => setMenuOpen(false)}>Compatibilité</Link>
