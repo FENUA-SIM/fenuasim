@@ -2,15 +2,17 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingCart, User } from 'lucide-react'
+import { ShoppingCart, User, Menu, X } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import LanguageSelector from '@/components/LanguageSelector'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
 export default function Navbar() {
   const { items } = useCart();
   const cartCount = items.reduce((sum, i) => sum + (i.quantity || 1), 0)
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <header className="w-full bg-white/80 backdrop-blur border-b border-gray-100 shadow-sm sticky top-0 z-50">
@@ -29,26 +31,14 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Liens */}
+        {/* Liens Desktop */}
         <ul className="hidden md:flex items-center gap-6 font-medium text-gray-700">
-          <li>
-            <Link href="/" className="nav-link">Accueil</Link>
-          </li>
-          <li>
-            <Link href="/shop" className="nav-link">Nos eSIM</Link>
-          </li>
-          <li>
-            <Link href="/compatibilite" className="nav-link">Compatibilité</Link>
-          </li>
-          <li>
-            <Link href="/faq" className="nav-link">FAQ</Link>
-          </li>
-          <li>
-            <Link href="/contact" className="nav-link">Contact</Link>
-          </li>
-          <li>
-            <LanguageSelector />
-          </li>
+          <li><Link href="/" className="nav-link">Accueil</Link></li>
+          <li><Link href="/shop" className="nav-link">Nos eSIM</Link></li>
+          <li><Link href="/compatibilite" className="nav-link">Compatibilité</Link></li>
+          <li><Link href="/faq" className="nav-link">FAQ</Link></li>
+          <li><Link href="/contact" className="nav-link">Contact</Link></li>
+          <li><LanguageSelector /></li>
           <li>
             <Link
               href="/cart"
@@ -72,11 +62,27 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {/* Menu mobile (à améliorer plus tard) */}
+        {/* Menu Mobile */}
         <div className="md:hidden">
-          {/* À implémenter : menu burger */}
+          <button onClick={() => setMenuOpen(!menuOpen)} className="p-2">
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </nav>
+
+      {/* Menu Mobile déroulant */}
+      {menuOpen && (
+        <div className="md:hidden absolute top-[88px] left-0 w-full bg-white shadow-lg z-40 p-4 space-y-4 text-gray-700 font-medium">
+          <Link href="/" onClick={() => setMenuOpen(false)}>Accueil</Link>
+          <Link href="/shop" onClick={() => setMenuOpen(false)}>Nos eSIM</Link>
+          <Link href="/compatibilite" onClick={() => setMenuOpen(false)}>Compatibilité</Link>
+          <Link href="/faq" onClick={() => setMenuOpen(false)}>FAQ</Link>
+          <Link href="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
+          <Link href="/cart" onClick={() => setMenuOpen(false)}>Panier</Link>
+          <Link href="/dashboard" onClick={() => setMenuOpen(false)}>Mon espace</Link>
+          <LanguageSelector />
+        </div>
+      )}
     </header>
   )
 }
