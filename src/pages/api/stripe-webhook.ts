@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { supabase } from "@/lib/supabaseClient";
+import { AiraloTopup } from "@/types/airaloTopup"; // Import the AiraloTopup type
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-04-30.basil",
@@ -35,6 +36,7 @@ export default async function handler(
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err: any) {
+    console.error(`Webhook signature verification failed: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -42,13 +44,20 @@ export default async function handler(
     const session = event.data.object as Stripe.Checkout.Session;
 
     if (session.payment_status !== "paid") {
-      return res.status(200).json({ received: true });
+      console.log(`Session ${session.id} not paid yet.`);
+      return res.status(200).json({ received: true, status: "payment_not_paid" });
     }
 
     try {
-      const { packageId } = session.metadata || {};
-      if (!packageId)
+      const { packageId, is_top_up, sim_iccid } = session.metadata || {};
+      if(!is_top_up ||!sim_iccid) {
+        console.error("Missing required metadata for top-up session:", session.id);
+        throw new Error("Missing required metadata for top-up session");
+      }
+      if (!packageId) {
+        console.error("Package ID not found in session metadata for session:", session.id);
         throw new Error("Package ID not found in session metadata");
+      }
 
       const customerEmail =
         session.customer_details?.email ||
@@ -62,82 +71,191 @@ export default async function handler(
         .single();
 
       if (packageError || !packageData) {
+        console.error(`Failed to retrieve package data for packageId ${packageId}: ${packageError?.message || "not found"}`);
         throw new Error(
           `Failed to retrieve package data: ${packageError?.message || "not found"}`
         );
       }
-      
-      const edgeFunctionResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-airalo-order`,
-        {
+
+      if (is_top_up === 'true' && sim_iccid) {
+        // THIS IS A TOP-UP
+        console.log(`Processing top-up for ICCID: ${sim_iccid} with package ID: ${packageId}, session: ${session.id}`);
+
+        // Call the local /api/process-airalo-topup endpoint
+        const topUpApiRoute = `${process.env.NEXT_PUBLIC_APP_URL}/api/process-airalo-topup`;
+        console.log(`Calling local top-up API: ${topUpApiRoute}`);
+
+        const topUpResponse = await fetch(topUpApiRoute, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-            "x-api-key": process.env.EDGE_FUNCTION_API_KEY || "",
+            // Consider adding an internal API key for security if NEXT_PUBLIC_APP_URL is a public domain
+            // "X-Internal-Api-Key": process.env.INTERNAL_API_KEY || "", 
           },
           body: JSON.stringify({
-            packageId,
-            airalo_id: packageData.airalo_id,
-            customerEmail,
-            customerName: session.customer_details?.name || "Customer",
-            customerFirstname:
-              session.customer_details?.name?.split(" ")[0] || "Customer",
-            quantity: 1,
-            description: `Order from Stripe session ${session.id}`,
+            sim_iccid: sim_iccid,
+            airalo_package_id: packageData.airalo_id, // Airalo ID of the top-up package
+            // Pass other details if your process-airalo-topup needs them, e.g.:
+            // stripe_session_id: session.id, 
+            // customer_email: customerEmail,
+            // package_db_id: packageId,
           }),
+        });
+
+        const topUpApiResult = await topUpResponse.json();
+
+        if (!topUpResponse.ok || !topUpApiResult.success) {
+          console.error(`Failed to process Airalo top-up via local API: ${topUpResponse.status} - ${topUpApiResult.message || 'Unknown API error'}`);
+          throw new Error(
+            `Failed to process Airalo top-up: ${topUpApiResult.message || topUpResponse.statusText}`
+          );
         }
-      );
 
-      if (!edgeFunctionResponse.ok) {
-        const errorText = await edgeFunctionResponse.text();
-        throw new Error(
-          `Failed to create Airalo order: ${edgeFunctionResponse.status} - ${errorText}`
+        console.log("Local Airalo top-up API processed successfully:", topUpApiResult);
+
+        // 1. Insert into 'orders' table first to get order_id
+        const orderToInsert = {
+          stripe_session_id: session.id,
+          package_id: packageId,
+          email: customerEmail,
+          // Use the Airalo top-up ID from the API response as airalo_order_id for consistency in 'orders'
+          airalo_order_id: topUpApiResult.airalo_topup_id || `topup_tx_${session.id}`,
+          status: "completed", // Or 'topped_up'
+          amount: session.amount_total,
+          created_at: new Date().toISOString(),
+          package_name: packageData.name,
+          data_amount: packageData.data_amount,
+          data_unit: packageData.data_unit,
+          validity_days: packageData.validity_days,
+          price: (session.amount_total ?? 0) / 100,
+          currency: session.currency?.toUpperCase() || packageData.currency?.toUpperCase() || "EUR",
+          transaction_type: 'topup',
+          // No esim_iccid or qr_code_url for top-ups in the main order record
+        };
+
+        const { data: newOrderData, error: orderError } = await supabase
+          .from("orders")
+          .insert(orderToInsert)
+          .select("id") // Select the id of the newly inserted order
+          .single(); // Expecting a single record
+
+        if (orderError || !newOrderData) {
+          console.error(`Failed to save top-up financial transaction to 'orders' database: ${orderError?.message}`);
+          throw new Error(
+            `Failed to save top-up financial transaction: ${orderError?.message}`
+          );
+        }
+        console.log("Top-up financial transaction saved to 'orders' database successfully. Order ID:", newOrderData.id);
+
+        // 2. Insert into 'airalo_topups' table using the newOrderData.id
+        const airaloTopupRecord: AiraloTopup = {
+          // id: will be auto-generated by Supabase (if it's a UUID and default is set)
+          // or you might need to generate one if it's not auto-incrementing and not a default UUID
+          topup_id: topUpApiResult.airalo_topup_id, // The ID from Airalo's top-up response
+          sim_iccid: sim_iccid,
+          order_id: newOrderData.id, // Link to the 'orders' table
+          email: customerEmail,
+          package_id: packageId, // Your internal package ID for the top-up package
+          amount: (session.amount_total ?? 0) / 100, // Amount paid for the top-up
+          currency: session.currency?.toUpperCase() || packageData.currency?.toUpperCase() || "EUR",
+          created_at: new Date().toISOString(),
+        };
+
+        const { error: airaloTopupError } = await supabase
+          .from("airalo_topups")
+          .insert(airaloTopupRecord);
+
+        if (airaloTopupError) {
+          console.error(`Failed to save top-up details to 'airalo_topups' database: ${airaloTopupError.message}`);
+          // Potentially consider how to handle this - the order is logged, but top-up specific log failed.
+          // For now, we'll throw, but you might want a more robust retry or notification system.
+          throw new Error(
+            `Failed to save top-up details to airalo_topups: ${airaloTopupError.message}`
+          );
+        }
+        console.log("Top-up details saved to 'airalo_topups' database successfully.");
+
+      } else {
+        // THIS IS A NEW ORDER (existing logic)
+        console.log(`Processing new order for package ID: ${packageId}, session: ${session.id}`);
+        const edgeFunctionResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-airalo-order`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+              "x-api-key": process.env.EDGE_FUNCTION_API_KEY || "",
+            },
+            body: JSON.stringify({
+              packageId, 
+              airalo_id: packageData.airalo_id, 
+              customerEmail,
+              customerName: session.customer_details?.name || "Customer",
+              customerFirstname:
+                session.customer_details?.name?.split(" ")[0] || "Customer",
+              quantity: 1, 
+              description: `Order from Stripe session ${session.id}`,
+            }),
+          }
         );
+
+        if (!edgeFunctionResponse.ok) {
+          const errorText = await edgeFunctionResponse.text();
+          console.error(`Failed to create Airalo order via Edge Function: ${edgeFunctionResponse.status} - ${errorText}`);
+          throw new Error(
+            `Failed to create Airalo order: ${edgeFunctionResponse.status} - ${errorText}`
+          );
+        }
+
+        const airaloOrderData = await edgeFunctionResponse.json();
+        console.log("Airalo order created successfully via Edge Function:", airaloOrderData);
+
+        const orderToInsert = {
+          stripe_session_id: session.id,
+          package_id: packageId,
+          email: customerEmail,
+          airalo_order_id: airaloOrderData.order_reference || airaloOrderData.id || `new_order_${session.id}`,
+          esim_iccid: airaloOrderData.iccid, 
+          qr_code_url: airaloOrderData.qr_code, 
+          status: "completed",
+          amount: session.amount_total,
+          created_at: new Date().toISOString(),
+          package_name: packageData.name,
+          data_amount: packageData.data_amount,
+          data_unit: packageData.data_unit,
+          validity_days: packageData.validity_days,
+          price: (session.amount_total ?? 0) / 100,
+          currency: session.currency?.toUpperCase() || packageData.currency?.toUpperCase() || "EUR",
+          transaction_type: 'new_order',
+        };
+
+        const { error: orderError } = await supabase
+          .from("orders")
+          .insert(orderToInsert);
+
+        if (orderError) {
+          console.error(`Failed to save new order to database: ${orderError.message}`);
+          throw new Error(
+            `Failed to save new order to database: ${orderError.message}`
+          );
+        }
+        console.log("New order saved to database successfully.");
       }
 
-      const orderData = await edgeFunctionResponse.json();
+      return res.status(200).json({ received: true, processed: true });
 
-      const orderToInsert = {
-        stripe_session_id: session.id,
-        package_id: packageId,
-        email: customerEmail,
-        airalo_order_id: packageData.airalo_id || "mock-order-id",
-        status: "completed",
-        amount: session.amount_total,
-        created_at: new Date().toISOString(),
-        package_name: packageData.name || "Unknown Package",
-        data_amount: packageData.data_amount || 0,
-        data_unit: packageData.data_unit || "GB",
-        validity_days: packageData.validity_days || 0,
-        price:
-          packageData.final_price_eur ||
-          packageData.price_eur ||
-          (session.amount_total ?? 0) / 100 ||
-          0,
-        currency: packageData.currency || "EUR",
-      };
-
-      const { error: orderError } = await supabase
-        .from("orders")
-        .insert(orderToInsert)
-        .select()
-        .single();
-
-      if (orderError) {
-        throw new Error(
-          `Failed to save order to database: ${orderError.message}`
-        );
-      }
-
-      return res.status(200).json({ received: true });
     } catch (error) {
-      return res.status(200).json({
+      console.error("Webhook processing error:", error);
+      return res.status(500).json({
         received: true,
-        error: error instanceof Error ? error.message : "Unknown error",
+        processed: false,
+        error: error instanceof Error ? error.message : "Unknown webhook processing error",
       });
     }
+  } else {
+    console.log(`Received unhandled event type: ${event.type}`);
   }
 
-  return res.status(200).json({ received: true });
+  return res.status(200).json({ received: true, status: "event_unhandled_or_processed" });
 }

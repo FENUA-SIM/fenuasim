@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 
 export default function Success() {
+  console.log('successaaaaaaaaa')
   const router = useRouter()
   const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)

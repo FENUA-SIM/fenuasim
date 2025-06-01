@@ -56,6 +56,7 @@ interface AiraloOrder {
   created_at: string;
   activated_at: string | null;
   expires_at: string | null;
+  transaction_type: string | null;
 }
 
 export default function Account() {
