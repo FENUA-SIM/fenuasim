@@ -39,8 +39,8 @@ export default async function handler(
     }));
 
     const metadata: Stripe.MetadataParam = {
-      customer_email: customer_email,
-      package_id: cartItems[0].id, // Assuming the first item is the top-up package
+      email: customer_email,
+      packageId: cartItems[0].id, // Assuming the first item is the top-up package
       cartItems: JSON.stringify(cartItems), // Optional: if you need all cart details in webhook
     };
 
