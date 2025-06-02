@@ -21,6 +21,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log("Hellooooooo")
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
@@ -40,7 +41,7 @@ export default async function handler(
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  if (event.type === "checkout.session.completed") {
+  if (event.type === "checkout.session.completed" || event.type === "charge.succeeded" || event.type === "charge.updated") {
     const session = event.data.object as Stripe.Checkout.Session;
 
     if (session.payment_status !== "paid") {

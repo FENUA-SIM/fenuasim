@@ -1,0 +1,363 @@
+"use client"; // If using Next.js App Router and client-side hooks
+
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation"; // Or 'next/router' for Pages Router
+import { supabase } from "@/lib/supabase";
+import { AiraloOrder } from "@/types/airaloOrder"; // Adjust path if necessary
+import { AiraloPackage } from "@/types/airaloPackage"; // Ensure this path is correct
+import { loadStripe } from "@stripe/stripe-js";
+import { ChevronLeft, ChevronRight, ShoppingCart, User } from "lucide-react";
+
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
+
+interface TopUpInlineSectionProps {
+  order: AiraloOrder;
+}
+
+const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
+  const router = useRouter();
+  const [originalPackageDetails, setOriginalPackageDetails] = useState<AiraloPackage | null>(null);
+  const [topUpPackages, setTopUpPackages] = useState<AiraloPackage[]>([]);
+  const [selectedTopUpPackage, setSelectedTopUpPackage] = useState<AiraloPackage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<"EUR" | "USD" | "XPF">("EUR");
+  const [currentIndex, setCurrentIndex] = useState(0); // For carousel
+
+  const [showRecapModal, setShowRecapModal] = useState(false);
+  const [form, setForm] = useState({ nom: "", prenom: "", email: "" });
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const cur = localStorage.getItem("currency") as "EUR" | "USD" | "XPF" | null;
+      if (cur) setCurrency(cur);
+
+      // Pre-fill form if user info is available (e.g., from Supabase auth or localStorage)
+      // This is an example, adjust based on how you store user info
+      const storedEmail = localStorage.getItem("customerEmail");
+      const storedName = localStorage.getItem("customerName");
+      if (storedEmail) setForm(prev => ({ ...prev, email: storedEmail }));
+      if (storedName) {
+        const nameParts = storedName.split(" ");
+        setForm(prev => ({ ...prev, prenom: nameParts[0] || "", nom: nameParts.slice(1).join(" ") || "" }));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchTopUpData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // 1. Fetch details of the original package to get its region
+        const { data: origPkgData, error: origPkgError } = await supabase
+          .from("airalo_packages")
+          .select("*")
+          .eq("id", order.package_id)
+          .single();
+
+        if (origPkgError || !origPkgData) {
+          throw new Error(origPkgError?.message || "Original package not found.");
+        }
+        setOriginalPackageDetails(origPkgData as AiraloPackage);
+        const regionFr = (origPkgData as AiraloPackage).region_fr;
+
+        // 2. Fetch top-up packages for that region
+        // (You might want to exclude the original package itself or filter by specific top-up types)
+        const { data: topUpsData, error: topUpsError } = await supabase
+          .from("airalo_packages")
+          .select("*")
+          .eq("region_fr", regionFr);
+          // .neq("id", order.package_id); // Optional: exclude the current package
+
+        if (topUpsError) throw topUpsError;
+        if (!topUpsData || topUpsData.length === 0) {
+          setError("Aucun forfait de recharge disponible pour cette destination.");
+          setTopUpPackages([]);
+        } else {
+          setTopUpPackages(topUpsData as AiraloPackage[]);
+          if (topUpsData.length > 0) {
+            setSelectedTopUpPackage(topUpsData[0] as AiraloPackage);
+          }
+        }
+      } catch (err: any) {
+        console.error("Error fetching top-up data:", err);
+        setError(err.message || "Erreur lors du chargement des forfaits de recharge.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (order.package_id) {
+      fetchTopUpData();
+    }
+  }, [order.package_id]);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => Math.max(0, prev - 1));
+  };
+  const handleNext = () => {
+    const maxIndex = Math.max(0, topUpPackages.length - (topUpPackages.length === 1 ? 1 : 2));
+    setCurrentIndex((prev) => Math.min(maxIndex, prev + 1));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleAcheter = (pkg: AiraloPackage) => {
+    setSelectedTopUpPackage(pkg);
+    setShowRecapModal(true);
+  };
+
+  async function handleRecapSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.nom || !form.prenom || !form.email) {
+      setFormError("Merci de remplir tous les champs obligatoires.");
+      return;
+    }
+    if (!selectedTopUpPackage) {
+      setFormError("Aucun forfait de recharge sélectionné.");
+      return;
+    }
+    setFormError(null);
+
+    // Storing in localStorage might still be useful for pre-filling forms on other pages
+    // or if the user navigates away and comes back before completing payment.
+    localStorage.setItem("packageId", selectedTopUpPackage.id);
+    localStorage.setItem("customerId", form.email); // Consider if this is the best ID, maybe a user ID from auth?
+    localStorage.setItem("customerEmail", form.email);
+    localStorage.setItem("customerName", `${form.prenom} ${form.nom}`);
+
+    setShowRecapModal(false);
+    try {
+      const response = await fetch("/api/create-topup-checkout-session", { // Or your new top-up specific endpoint
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cartItems: [
+            {
+              id: selectedTopUpPackage.id,
+              name: selectedTopUpPackage.name,
+              description: selectedTopUpPackage.description,
+              // Send the price corresponding to the selected currency.
+              // Your API will need to handle this or you select the price here.
+              price: selectedTopUpPackage.final_price_eur, // Example: default to EUR or use selected currency
+              currency: currency, // Send selected currency
+              // Ensure your API expects 'price' and 'currency' or adjust accordingly
+              // (e.g., final_price_eur, final_price_usd, final_price_xpf)
+            },
+          ],
+          customer_email: form.email,
+          is_top_up: true, // Flag to indicate this is a top-up
+          sim_iccid: order.sim_iccid, // Pass the ICCID of the SIM to be topped up
+        }),
+      });
+      const { sessionId, error: apiError } = await response.json();
+      if (apiError) throw new Error(apiError);
+      if (!sessionId) throw new Error("Session ID not received.");
+      
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error("Stripe non initialisé");
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      if (error) throw error;
+    } catch (err: any) {
+      console.error("Erreur lors de la redirection Stripe:", err);
+      setFormError(
+        err.message || "Une erreur est survenue lors de la redirection vers le paiement. Veuillez réessayer."
+      );
+    }
+  }
+
+  const displayPackages = topUpPackages.slice(currentIndex, currentIndex + (topUpPackages.length === 1 ? 1 : 2));
+
+
+  if (loading) {
+    return (
+      <div className="mt-4 p-4 border-t border-gray-200 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mt-4 p-4 border-t border-gray-200 text-center text-red-600">
+        {error}
+      </div>
+    );
+  }
+
+  if (topUpPackages.length === 0 && !loading) {
+    return (
+         <div className="mt-4 p-4 border-t border-gray-200 text-center text-gray-600">
+            Aucun forfait de recharge disponible pour cette région actuellement.
+        </div>
+    )
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200">
+      <h4 className="text-md font-semibold text-gray-800 mb-3">
+        Recharger votre eSIM (ICCID: {order.sim_iccid})
+      </h4>
+      <div className="mb-2">
+        <span className="text-sm text-gray-600">Solde actuel: </span>
+        <span className="text-sm font-medium text-gray-800">{order.data_balance}</span>
+      </div>
+      
+      {originalPackageDetails && (
+        <div className="mb-4 text-sm text-gray-500">
+            Forfaits de recharge pour: {originalPackageDetails.region_fr}
+        </div>
+      )}
+
+      {/* Package Carousel */}
+      <div className="relative flex items-center justify-center mb-6">
+        {topUpPackages.length > 2 && (
+            <button
+            onClick={handlePrev}
+            disabled={currentIndex === 0}
+            className="absolute left-0 z-10 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full p-2 shadow hover:bg-purple-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ top: "50%", transform: "translateY(-50%) translateX(-50%)" }}
+            aria-label="Précédent"
+            >
+            <ChevronLeft className="w-5 h-5 text-purple-600" />
+            </button>
+        )}
+
+        <div className={`w-full grid ${topUpPackages.length === 1 ? 'grid-cols-1 justify-center' : 'grid-cols-1 md:grid-cols-2'} gap-4 max-w-3xl mx-auto`}>
+          {displayPackages.map((pkg) => {
+            let price = pkg.final_price_eur;
+            let symbol = "€";
+            if (currency === "USD") {
+              price = pkg.final_price_usd;
+              symbol = "$";
+            } else if (currency === "XPF") {
+              price = pkg.final_price_xpf;
+              symbol = "₣";
+            }
+            const countryCode = pkg.country ? pkg.country.toLowerCase() : "xx"; // Default flag
+
+            return (
+              <div
+                key={pkg.id}
+                className={`bg-white rounded-xl border-2 p-4 flex flex-col items-center shadow-md transition-all duration-200 cursor-pointer ${
+                  selectedTopUpPackage?.id === pkg.id
+                    ? "border-purple-500 ring-2 ring-purple-500"
+                    : "border-gray-200 hover:border-purple-300 hover:shadow-lg"
+                }`}
+                onClick={() => setSelectedTopUpPackage(pkg)}
+              >
+                <div className="flex items-center gap-2 mb-2 self-start">
+                  {pkg.region_image_url ? (
+                    <Image
+                      src={pkg.region_image_url}
+                      alt={pkg.region_fr || ""}
+                      width={32}
+                      height={20}
+                      className="rounded object-cover border"
+                    />
+                  ) : (
+                    <img
+                      src={`https://flagcdn.com/w40/${countryCode}.png`}
+                      alt={pkg.region_fr || ""}
+                      width={32}
+                      height={20}
+                      className="rounded object-cover border"
+                    />
+                  )}
+                  <h3 className="text-sm font-bold text-purple-800">
+                    {pkg.name}
+                  </h3>
+                </div>
+                <div className="flex flex-wrap gap-1 mb-3 justify-start self-start">
+                  <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+                    {pkg.data_amount}{" "}
+                    {pkg.data_unit === "GB" ? "Go" : pkg.data_unit}
+                  </span>
+                  <span className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+                    {pkg.duration}{" "}
+                    {pkg.duration_unit === "Days" ? "jours" : pkg.duration_unit}
+                  </span>
+                </div>
+                <div className="text-lg font-bold text-gray-800 mb-3 self-start">
+                  {symbol}
+                  {price.toFixed(2)}
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleAcheter(pkg); }}
+                  className="w-full mt-auto py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-sm flex items-center justify-center gap-2"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  Recharger
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        {topUpPackages.length > 2 && (
+            <button
+            onClick={handleNext}
+            disabled={currentIndex >= topUpPackages.length - (topUpPackages.length === 1 ? 1 : 2) || displayPackages.length < (topUpPackages.length === 1 ? 1 : 2) }
+            className="absolute right-0 z-10 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full p-2 shadow hover:bg-purple-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ top: "50%", transform: "translateY(-50%) translateX(50%)" }}
+            aria-label="Suivant"
+            >
+            <ChevronRight className="w-5 h-5 text-purple-600" />
+            </button>
+        )}
+      </div>
+
+      {/* Recap Modal (rendered as part of this inline section) */}
+      {showRecapModal && selectedTopUpPackage && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-lg w-full relative">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => setShowRecapModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <div className="flex items-center gap-3 mb-6">
+                <User className="w-8 h-8 text-purple-600" />
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Vos informations</h2>
+            </div>
+            {formError && (
+              <p className="text-red-500 text-sm mb-3">{formError}</p>
+            )}
+            <form onSubmit={handleRecapSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                  <input type="text" name="prenom" id="prenom" value={form.prenom} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500"/>
+                </div>
+                <div>
+                  <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                  <input type="text" name="nom" id="nom" value={form.nom} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500"/>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" name="email" id="email" value={form.email} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500"/>
+              </div>
+              <div className="pt-4">
+                <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold py-3 px-4 rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300">
+                  Procéder au paiement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TopUpInlineSection;

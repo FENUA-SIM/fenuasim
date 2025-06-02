@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getAiraloToken } from "@/lib/airalo";
 // Supabase client is not directly used here for inserts anymore, but getAiraloApiToken might use it if refactored
 // import { supabase } from "@/lib/supabaseClient"; 
 
@@ -6,57 +7,6 @@ interface AiraloAuthResponse {
   access_token: string;
   token_type: string;
   expires_in: number;
-}
-
-async function getAiraloApiToken(): Promise<string> {
-  try {
-    console.log("🔑 Obtention du token Airalo...");
-    const apiUrl = "https://api.airalo.com/api/v2/auth";
-    console.log("URL:", apiUrl);
-
-    if (!process.env.AIRALO_EMAIL || !process.env.AIRALO_PASSWORD) {
-      throw new Error(
-        "Identifiants Airalo manquants dans les variables d'environnement"
-      );
-    }
-
-    console.log("Email:", process.env.AIRALO_EMAIL);
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "Fenuasim/1.0",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        email: process.env.AIRALO_EMAIL,
-        password: process.env.AIRALO_PASSWORD,
-      }),
-    });
-
-    console.log("Status:", response.status);
-    console.log("Status Text:", response.statusText);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Réponse d'erreur:", errorText);
-      throw new Error(
-        `Erreur d'authentification Airalo: ${response.statusText} - ${errorText}`
-      );
-    }
-
-    const data: AiraloAuthResponse = await response.json();
-    console.log("✅ Token Airalo obtenu avec succès");
-    return data.access_token;
-  } catch (error) {
-    console.error("❌ Erreur lors de l'obtention du token Airalo:", error);
-    if (error instanceof Error) {
-      console.error("Message d'erreur:", error.message);
-      console.error("Stack trace:", error.stack);
-    }
-    throw error;
-  }
 }
 
 interface AiraloTopUpPayload {
@@ -104,9 +54,12 @@ async function callAiraloTopUpAPI(
   token: string
 ): Promise<ProcessedAiraloTopUpResponse> {
   console.log(
+    `Payload: ${payload}`
+  );
+  console.log(
     `Attempting Airalo top-up for ICCID: ${payload.iccid} with package: ${payload.package_id}`
   );
-  const AIRALO_TOPUP_API_ENDPOINT = "https://api.airalo.com/api/v2/orders/topups"; // VERIFY THIS ENDPOINT
+  const AIRALO_TOPUP_API_ENDPOINT = "https://sandbox-partners-api.airalo.com/v2/orders/topups"; // VERIFY THIS ENDPOINT
 
   const response = await fetch(AIRALO_TOPUP_API_ENDPOINT, {
     method: "POST",
@@ -181,7 +134,8 @@ export default async function handler(
 
   let airaloApiToken = "";
   try {
-    airaloApiToken = await getAiraloApiToken();
+    airaloApiToken = await getAiraloToken();
+    console.log("🔑 Airalo Token: ", airaloApiToken);
   } catch (error) {
     console.error("Failed to get Airalo API token:", error);
     // No logging to DB here, just return error
