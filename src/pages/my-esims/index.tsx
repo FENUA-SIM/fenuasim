@@ -13,7 +13,7 @@ import {
   Eye,
   Copy,
 } from "lucide-react";
-import TopUpInlineSection from "@/components/TopUpInlineSection"; // New component
+import TopUpInlineSection from "@/components/my-esims/topupinlinesection"; // New component
 
 // Type definitions
 interface SupabaseUser {

@@ -41,7 +41,7 @@ export default async function handler(
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  if (event.type === "checkout.session.completed" || event.type === "charge.succeeded" || event.type === "charge.updated") {
+  if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
     if (session.payment_status !== "paid") {
@@ -68,7 +68,7 @@ export default async function handler(
       const { data: packageData, error: packageError } = await supabase
         .from("airalo_packages")
         .select("*")
-        .eq("id", packageId)
+        .eq("airalo_id", packageId)
         .single();
 
       if (packageError || !packageData) {
@@ -95,7 +95,7 @@ export default async function handler(
           },
           body: JSON.stringify({
             sim_iccid: sim_iccid,
-            airalo_package_id: packageData.airalo_id, // Airalo ID of the top-up package
+            airalo_package_id: `${packageData.airalo_id}-topup`, // Airalo ID of the top-up package
             // Pass other details if your process-airalo-topup needs them, e.g.:
             // stripe_session_id: session.id, 
             // customer_email: customerEmail,

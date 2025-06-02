@@ -5,6 +5,7 @@ export interface AiraloPackage {
   airalo_id?: string; // Actual Airalo package ID, if different from your DB's id
   name: string;
   slug: string;
+  day?:string;
   description?: string;
   country?: string; // ISO 3166-1 alpha-2 country code, e.g., 'FR', 'US'
   region: string; // e.g., 'Paris', 'New York'
@@ -30,6 +31,6 @@ export interface AiraloPackage {
   price: number; // Price in the default currency
   region_fr: string; // French name of the region
   currency?: string; // Default currency, e.g., 'EUR', 'USD'
-  // Add any other fields from your 'airalo_packages' table that you need
-  // for displaying or processing top-up packages.
+  title?: string;
+  shortInfo?: string;
 }

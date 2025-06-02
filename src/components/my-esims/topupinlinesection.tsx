@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation"; // Or 'next/router' for Pages Router
 import { supabase } from "@/lib/supabase";
+import { getAiraloToken } from "@/lib/airalo";
 import { AiraloOrder } from "@/types/airaloOrder"; // Adjust path if necessary
 import { AiraloPackage } from "@/types/airaloPackage"; // Ensure this path is correct
 import { loadStripe } from "@stripe/stripe-js";
@@ -50,40 +51,27 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
   }, []);
 
   useEffect(() => {
-    const fetchTopUpData = async () => {
+    const fetchAiraloTopupData = async (iccid: string) => {
       setLoading(true);
       setError(null);
       try {
-        // 1. Fetch details of the original package to get its region
-        const { data: origPkgData, error: origPkgError } = await supabase
-          .from("airalo_packages")
-          .select("*")
-          .eq("id", order.package_id)
-          .single();
-
-        if (origPkgError || !origPkgData) {
-          throw new Error(origPkgError?.message || "Original package not found.");
+        const response = await fetch(`/api/topups/${iccid}`, {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+          },
+        });
+    
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des données de recharge.");
         }
-        setOriginalPackageDetails(origPkgData as AiraloPackage);
-        const regionFr = (origPkgData as AiraloPackage).region_fr;
-
-        // 2. Fetch top-up packages for that region
-        // (You might want to exclude the original package itself or filter by specific top-up types)
-        const { data: topUpsData, error: topUpsError } = await supabase
-          .from("airalo_packages")
-          .select("*")
-          .eq("region_fr", regionFr);
-          // .neq("id", order.package_id); // Optional: exclude the current package
-
-        if (topUpsError) throw topUpsError;
-        if (!topUpsData || topUpsData.length === 0) {
-          setError("Aucun forfait de recharge disponible pour cette destination.");
-          setTopUpPackages([]);
-        } else {
-          setTopUpPackages(topUpsData as AiraloPackage[]);
-          if (topUpsData.length > 0) {
-            setSelectedTopUpPackage(topUpsData[0] as AiraloPackage);
-          }
+    
+        const result = await response.json();
+        const data = result.data;
+    
+        setTopUpPackages(data || []);
+        if (data && data.length > 0) {
+          setSelectedTopUpPackage(data[0]);
         }
       } catch (err: any) {
         console.error("Error fetching top-up data:", err);
@@ -91,12 +79,12 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
       } finally {
         setLoading(false);
       }
-    };
+    };    
 
-    if (order.package_id) {
-      fetchTopUpData();
+    if (order.sim_iccid) {
+      fetchAiraloTopupData(order.sim_iccid);
     }
-  }, [order.package_id]);
+  }, [order.sim_iccid]);
 
   const handlePrev = () => {
     setCurrentIndex((prev) => Math.max(0, prev - 1));
@@ -134,6 +122,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
     localStorage.setItem("customerEmail", form.email);
     localStorage.setItem("customerName", `${form.prenom} ${form.nom}`);
 
+    const cleanedPackagedId = selectedTopUpPackage.id.replace(/-topup$/, "");
     setShowRecapModal(false);
     try {
       const response = await fetch("/api/create-topup-checkout-session", { // Or your new top-up specific endpoint
@@ -142,12 +131,12 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
         body: JSON.stringify({
           cartItems: [
             {
-              id: selectedTopUpPackage.id,
-              name: selectedTopUpPackage.name,
-              description: selectedTopUpPackage.description,
+              id: cleanedPackagedId,
+              name: selectedTopUpPackage.title,
+              description: selectedTopUpPackage.shortInfo,
               // Send the price corresponding to the selected currency.
               // Your API will need to handle this or you select the price here.
-              price: selectedTopUpPackage.final_price_eur, // Example: default to EUR or use selected currency
+              price: selectedTopUpPackage.price, // Example: default to EUR or use selected currency
               currency: currency, // Send selected currency
               // Ensure your API expects 'price' and 'currency' or adjust accordingly
               // (e.g., final_price_eur, final_price_usd, final_price_xpf)
@@ -233,16 +222,15 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
 
         <div className={`w-full grid ${topUpPackages.length === 1 ? 'grid-cols-1 justify-center' : 'grid-cols-1 md:grid-cols-2'} gap-4 max-w-3xl mx-auto`}>
           {displayPackages.map((pkg) => {
-            let price = pkg.final_price_eur;
+            let price = pkg.price;
             let symbol = "€";
             if (currency === "USD") {
-              price = pkg.final_price_usd;
+              price = pkg.price;
               symbol = "$";
             } else if (currency === "XPF") {
-              price = pkg.final_price_xpf;
+              price = pkg.price;
               symbol = "₣";
             }
-            const countryCode = pkg.country ? pkg.country.toLowerCase() : "xx"; // Default flag
 
             return (
               <div
@@ -255,7 +243,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                 onClick={() => setSelectedTopUpPackage(pkg)}
               >
                 <div className="flex items-center gap-2 mb-2 self-start">
-                  {pkg.region_image_url ? (
+                  {/* {pkg.region_image_url ? (
                     <Image
                       src={pkg.region_image_url}
                       alt={pkg.region_fr || ""}
@@ -271,7 +259,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                       height={20}
                       className="rounded object-cover border"
                     />
-                  )}
+                  )} */}
                   <h3 className="text-sm font-bold text-purple-800">
                     {pkg.name}
                   </h3>
@@ -282,8 +270,8 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                     {pkg.data_unit === "GB" ? "Go" : pkg.data_unit}
                   </span>
                   <span className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full font-medium">
-                    {pkg.duration}{" "}
-                    {pkg.duration_unit === "Days" ? "jours" : pkg.duration_unit}
+                    {pkg.day}{" "}
+                    {"Days"}
                   </span>
                 </div>
                 <div className="text-lg font-bold text-gray-800 mb-3 self-start">

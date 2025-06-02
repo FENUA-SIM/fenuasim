@@ -59,18 +59,33 @@ export default function SuccessPage() {
         }
         if (!orderData) return setOrderStatus("error");
 
-        const { data: esimData, error: esimError } = await supabase
-          .from("airalo_orders")
+        let esimPackageId;
+        if (orderData.transaction_type !== "topup") {
+          const { data: esimData, error: esimError } = await supabase
+            .from("airalo_orders")
+            .select("*")
+            .eq("package_id", orderData.package_id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          esimPackageId = esimData?.package_id;
+        }
+        else {
+          const { data: esimData, error: esimError } = await supabase
+          .from("airalo_topups")
           .select("*")
-          .eq("package_id", orderData.package_id)
+          .eq("airalo_id", orderData.package_id)
           .order("created_at", { ascending: false })
           .limit(1)
-          .maybeSingle();
+          esimPackageId = esimData?.airalo_id;
+        }
+
+        const id = orderData.transaction_type === "topup" ? "airalo_id" : "id";
 
         const { data: packageData, error: packageError } = await supabase
           .from("airalo_packages")
           .select("*")
-          .eq("id", esimData.package_id)
+          .eq(`${id}`, esimPackageId)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -552,9 +567,7 @@ export default function SuccessPage() {
                       <Mail className="w-5 h-5 text-purple-600" />
                       <div>
                         <p className="font-semibold text-gray-800">Email</p>
-                        <p className="text-gray-600">
-                          sav@fenuasim.com
-                        </p>
+                        <p className="text-gray-600">sav@fenuasim.com</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
