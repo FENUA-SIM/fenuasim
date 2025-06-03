@@ -49,7 +49,7 @@ export default async function handler(
     }
 
     try {
-      const { packageId, is_top_up, sim_iccid } = session.metadata || {};
+      const { packageId, is_top_up, sim_iccid, promo_code } = session.metadata || {};
       if(!is_top_up ||!sim_iccid) {
         console.error("Missing required metadata for top-up session:", session.id);
         throw new Error("Missing required metadata for top-up session");
@@ -227,6 +227,33 @@ export default async function handler(
           );
         }
         console.log("New order saved to database successfully.");
+      }
+
+      // If there's a promo code, record its usage
+      if (promo_code) {
+        const { data: promoCodeData, error: promoError } = await supabase
+          .from('promo_codes')
+          .select('id')
+          .eq('code', promo_code)
+          .single();
+
+        if (!promoError && promoCodeData) {
+          // Update times_used
+          await supabase
+            .from('promo_codes')
+            .update({ times_used: supabase.rpc('increment_times_used', { promo_code_id: promoCodeData.id }) })
+            .eq('id', promoCodeData.id);
+
+          // Record usage
+          await supabase
+            .from('promo_code_usage')
+            .insert({
+              promo_code_id: promoCodeData.id,
+              order_id: session.id,
+              user_email: session.customer_details?.email || session.metadata?.email,
+              used_at: new Date().toISOString()
+            });
+        }
       }
 
       return res.status(200).json({ received: true, processed: true });

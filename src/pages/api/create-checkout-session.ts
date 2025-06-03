@@ -14,7 +14,7 @@ export default async function handler(
   }
 
   try {
-    const { cartItems, email, packageId } = req.body
+    const { cartItems, customer_email } = req.body
 
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
       return res.status(400).json({ message: 'Invalid cart items' })
@@ -37,12 +37,13 @@ export default async function handler(
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/cancel`,
-      customer_email: email, // Add this for better tracking
+      customer_email: customer_email,
       metadata: {
-        packageId: packageId || cartItems[0].id, // Fallback to first item ID
-        email: email,
+        packageId: cartItems[0].id,
+        email: customer_email,
         // Store cart items as JSON string to access in webhook
         cartItems: JSON.stringify(cartItems),
+        promo_code: cartItems[0].promo_code || '',
       },
     })
 

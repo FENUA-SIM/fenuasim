@@ -19,6 +19,88 @@ interface TopUpInlineSectionProps {
   order: AiraloOrder;
 }
 
+type PromoCode = {
+  id: number;
+  code: string;
+  discount_percentage: number | null;
+  discount_amount: number | null;
+  is_active: boolean;
+  valid_from: string;
+  valid_until: string;
+  usage_limit: number;
+  times_used: number;
+};
+
+async function validateAndApplyPromoCode(code: string, packagePrice: number): Promise<{
+  isValid: boolean;
+  discountedPrice: number;
+  error?: string;
+}> {
+  try {
+    const { data: promoCode, error } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .eq('code', code)
+      .single();
+
+    if (error || !promoCode) {
+      return {
+        isValid: false,
+        discountedPrice: packagePrice,
+        error: 'Code promo invalide'
+      };
+    }
+
+    // Check if promo code is active
+    if (!promoCode.is_active) {
+      return {
+        isValid: false,
+        discountedPrice: packagePrice,
+        error: 'Ce code promo n\'est plus actif'
+      };
+    }
+
+    // Check validity dates
+    const now = new Date();
+    if (new Date(promoCode.valid_from) > now || new Date(promoCode.valid_until) < now) {
+      return {
+        isValid: false,
+        discountedPrice: packagePrice,
+        error: 'Ce code promo n\'est plus valide'
+      };
+    }
+
+    // Check usage limit
+    if (promoCode.usage_limit && promoCode.times_used >= promoCode.usage_limit) {
+      return {
+        isValid: false,
+        discountedPrice: packagePrice,
+        error: 'Ce code promo a atteint sa limite d\'utilisation'
+      };
+    }
+
+    // Calculate discounted price
+    let discountedPrice = packagePrice;
+    if (promoCode.discount_percentage) {
+      discountedPrice = packagePrice * (1 - promoCode.discount_percentage / 100);
+    } else if (promoCode.discount_amount) {
+      discountedPrice = Math.max(0, packagePrice - promoCode.discount_amount);
+    }
+
+    return {
+      isValid: true,
+      discountedPrice
+    };
+  } catch (error) {
+    console.error('Error validating promo code:', error);
+    return {
+      isValid: false,
+      discountedPrice: packagePrice,
+      error: 'Une erreur est survenue lors de la validation du code promo'
+    };
+  }
+}
+
 const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
   const router = useRouter();
   const [originalPackageDetails, setOriginalPackageDetails] = useState<AiraloPackage | null>(null);
@@ -32,6 +114,10 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
   const [showRecapModal, setShowRecapModal] = useState(false);
   const [form, setForm] = useState({ nom: "", prenom: "", email: "" });
   const [formError, setFormError] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoCodeError, setPromoCodeError] = useState<string | null>(null);
+  const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
+  const [appliedPromoCode, setAppliedPromoCode] = useState<PromoCode | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -103,6 +189,23 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
     setShowRecapModal(true);
   };
 
+  const handlePromoCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTopUpPackage) return;
+
+    const result = await validateAndApplyPromoCode(promoCode, selectedTopUpPackage.price);
+    if (result.isValid) {
+      setDiscountedPrice(result.discountedPrice);
+      setPromoCodeError(null);
+      // Store promo code in localStorage for use in checkout
+      localStorage.setItem('promoCode', promoCode);
+    } else {
+      setPromoCodeError(result.error || 'Code promo invalide');
+      setDiscountedPrice(null);
+      localStorage.removeItem('promoCode');
+    }
+  };
+
   async function handleRecapSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.nom || !form.prenom || !form.email) {
@@ -115,17 +218,16 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
     }
     setFormError(null);
 
-    // Storing in localStorage might still be useful for pre-filling forms on other pages
-    // or if the user navigates away and comes back before completing payment.
+    // Store customer info in localStorage
     localStorage.setItem("packageId", selectedTopUpPackage.id);
-    localStorage.setItem("customerId", form.email); // Consider if this is the best ID, maybe a user ID from auth?
+    localStorage.setItem("customerId", form.email);
     localStorage.setItem("customerEmail", form.email);
     localStorage.setItem("customerName", `${form.prenom} ${form.nom}`);
 
     const cleanedPackagedId = selectedTopUpPackage.id.replace(/-topup$/, "");
     setShowRecapModal(false);
     try {
-      const response = await fetch("/api/create-topup-checkout-session", { // Or your new top-up specific endpoint
+      const response = await fetch("/api/create-topup-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -134,13 +236,14 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
               id: cleanedPackagedId,
               name: selectedTopUpPackage.title,
               description: selectedTopUpPackage.shortInfo,
-              price: selectedTopUpPackage.price,
+              price: discountedPrice || selectedTopUpPackage.price,
               currency: currency,
             },
           ],
           customer_email: form.email,
           is_top_up: true,
           sim_iccid: order.sim_iccid,
+          promo_code: localStorage.getItem('promoCode'), // Add promo code to the request
         }),
       });
       const { sessionId, error: apiError } = await response.json();
@@ -274,13 +377,40 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                   {symbol}
                   {price.toFixed(2)}
                 </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleAcheter(pkg); }}
-                  className="w-full mt-auto py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-sm flex items-center justify-center gap-2"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  Recharger
-                </button>
+                <div className="flex flex-col items-center">
+                  <div className="w-full mb-4">
+                    <form onSubmit={handlePromoCodeSubmit} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
+                        placeholder="Code promo"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        Appliquer
+                      </button>
+                    </form>
+                    {promoCodeError && (
+                      <p className="text-red-500 text-sm mt-1">{promoCodeError}</p>
+                    )}
+                    {discountedPrice && (
+                      <p className="text-green-600 text-sm mt-1">
+                        Prix réduit: {discountedPrice.toFixed(2)} {currency}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleAcheter(pkg); }}
+                    className="w-full mt-auto py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-sm flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    Recharger
+                  </button>
+                </div>
               </div>
             );
           })}

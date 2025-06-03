@@ -69,6 +69,76 @@ function slugToRegionFr(slug: string): string {
     .join(" ");
 }
 
+async function validateAndApplyPromoCode(code: string, packagePrice: number): Promise<{
+  isValid: boolean;
+  discountedPrice: number;
+  error?: string;
+}> {
+  try {
+    const { data: promoCode, error } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .eq('code', code)
+      .single();
+
+    if (error || !promoCode) {
+      return {
+        isValid: false,
+        discountedPrice: packagePrice,
+        error: 'Code promo invalide'
+      };
+    }
+
+    // Check if promo code is active
+    if (!promoCode.is_active) {
+      return {
+        isValid: false,
+        discountedPrice: packagePrice,
+        error: 'Ce code promo n\'est plus actif'
+      };
+    }
+
+    // Check validity dates
+    const now = new Date();
+    if (new Date(promoCode.valid_from) > now || new Date(promoCode.valid_until) < now) {
+      return {
+        isValid: false,
+        discountedPrice: packagePrice,
+        error: 'Ce code promo n\'est plus valide'
+      };
+    }
+
+    // Check usage limit
+    if (promoCode.usage_limit && promoCode.times_used >= promoCode.usage_limit) {
+      return {
+        isValid: false,
+        discountedPrice: packagePrice,
+        error: 'Ce code promo a atteint sa limite d\'utilisation'
+      };
+    }
+
+    // Calculate discounted price
+    let discountedPrice = packagePrice;
+    if (promoCode.discount_percentage) {
+      discountedPrice = packagePrice * (1 - promoCode.discount_percentage / 100);
+    } else if (promoCode.discount_amount) {
+      discountedPrice = Math.max(0, packagePrice - promoCode.discount_amount);
+    }
+
+    return {
+      isValid: true,
+      discountedPrice
+    };
+  } catch (error) {
+    console.error('Error validating promo code:', error);
+    return {
+      isValid: false,
+      discountedPrice: packagePrice,
+      error: 'Une erreur est survenue lors de la validation du code promo'
+    };
+  }
+}
+
 export default function RegionPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
@@ -221,35 +291,52 @@ export default function RegionPage() {
       setFormError("Merci de remplir tous les champs obligatoires.");
       return;
     }
+    if (!selectedPackage) {
+      setFormError("Aucun forfait sélectionné.");
+      return;
+    }
     setFormError(null);
 
-    // Stockage des infos pour la page /success
-    localStorage.setItem("packageId", selectedPackage?.id || "");
-    localStorage.setItem("customerId", form.email); // ou l'ID utilisateur Supabase si connecté
+    // Validate promo code if provided
+    let finalPrice = selectedPackage.final_price_eur;
+    if (form.codePromo) {
+      const promoResult = await validateAndApplyPromoCode(form.codePromo, finalPrice);
+      if (!promoResult.isValid) {
+        setFormError(promoResult.error || "Code promo invalide");
+        return;
+      }
+      finalPrice = promoResult.discountedPrice;
+    }
+
+    // Store customer info in localStorage
+    localStorage.setItem("packageId", selectedPackage.id);
+    localStorage.setItem("customerId", form.email);
     localStorage.setItem("customerEmail", form.email);
     localStorage.setItem("customerName", `${form.prenom} ${form.nom}`);
+    if (form.codePromo) {
+      localStorage.setItem("promoCode", form.codePromo);
+    }
 
     setShowRecapModal(false);
-    // Appel à l'API pour créer la session Stripe
     try {
-      console.log("Appel à l'API create-checkout-session...");
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cartItems: [
             {
-              id: selectedPackage?.id,
-              name: selectedPackage?.name,
-              description: selectedPackage?.description,
-              final_price_eur: selectedPackage?.final_price_eur,
+              id: selectedPackage.id,
+              name: selectedPackage.name,
+              description: selectedPackage.description,
+              final_price_eur: finalPrice,
+              promo_code: form.codePromo || undefined
             },
           ],
+          customer_email: form.email,
         }),
       });
-      console.log("Réponse de l'API:", response);
+
       const { sessionId } = await response.json();
-      console.log("SessionId reçu:", sessionId);
       const stripe = await stripePromise;
       if (!stripe) throw new Error("Stripe non initialisé");
       const { error } = await stripe.redirectToCheckout({ sessionId });
