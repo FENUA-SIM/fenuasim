@@ -352,13 +352,28 @@ export default function RegionPage() {
               </div>
             </div>
             <div>
-              <button
+                <button
                 className="bg-gradient-to-r from-purple-600 to-orange-500 text-white px-6 py-2.5 rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-sm sm:text-base font-semibold"
-                onClick={() => handleAcheter(selectedPackage!)}
-              >
+                onClick={() => router.push('/compatibilite')}
+                >
                 Vérifier la compatibilité
-              </button>
+                </button>
             </div>
+          </div>
+
+          <div className="flex justify-end mt-6">
+            <select
+              value={currency}
+              onChange={(e) => {
+                setCurrency(e.target.value as "EUR" | "XPF" | "USD");
+                localStorage.setItem("currency", e.target.value);
+              }}
+              className="border border-purple-300 text-purple-800 bg-white rounded-lg px-3 sm:px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-md font-semibold text-sm sm:text-base min-w-24"
+            >
+              <option value="EUR">€ EUR</option>
+              <option value="XPF">₣ XPF</option>
+              <option value="USD">$ USD</option>
+            </select>
           </div>
 
           <div className="mt-12 rounded shadow bg-gray-100 p-6">
@@ -427,8 +442,11 @@ export default function RegionPage() {
                             />
                           ) : (
                             <img
-                              src={`https://flagcdn.com/w40/${countryCode}.png`}
-                              alt={pkg.region_fr || ""}
+                              src={
+                                pkg.operator_logo_url ??
+                                `https://flagcdn.com/w40/${countryCode}.png`
+                              }
+                              alt={""}
                               width={40}
                               height={28}
                               className="rounded object-cover border"
@@ -440,30 +458,14 @@ export default function RegionPage() {
                         </div>
                         {/* Data, Duration, Badges */}
                         <div className="flex flex-wrap gap-2 mb-3 justify-center">
-                          <span className="text-xs sm:text-sm bg-purple-50 text-purple-700 px-3 py-1 rounded-full font-semibold">
-                            {pkg.data_amount}{" "}
-                            {pkg.data_unit === "GB"
-                              ? "Go"
-                              : pkg.data_unit === "MB"
-                              ? "Mo"
-                              : pkg.data_unit}
+                          <span className="text-xs sm:text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-bold">
+                            {pkg.includes_voice
+                              ? "Appels inclus"
+                              : "Pas d'appels"}
                           </span>
-                          <span className="text-xs sm:text-sm bg-orange-50 text-orange-700 px-3 py-1 rounded-full font-semibold">
-                            {pkg.duration}{" "}
-                            {pkg.duration_unit === "Days"
-                              ? "jours"
-                              : pkg.duration_unit}
+                          <span className="text-xs sm:text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-bold">
+                            {pkg.includes_sms ? "SMS inclus" : "Pas de SMS"}
                           </span>
-                          {pkg.includes_voice && (
-                            <span className="text-xs sm:text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-semibold">
-                              Appels inclus
-                            </span>
-                          )}
-                          {pkg.includes_sms && (
-                            <span className="text-xs sm:text-sm bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-semibold">
-                              SMS inclus
-                            </span>
-                          )}
                         </div>
                         {/* Description */}
                         <div className="text-gray-700 text-sm mb-3 text-center min-h-[40px]">
@@ -531,6 +533,7 @@ export default function RegionPage() {
               ))}
             </div>
           </div>
+          <div className="my-6 p-3 text-gray-600 font-semibold rounded shadow bg-gray-100">✅ All packages are rechargeable after ordering from your customer area</div>
         </div>
       </section>
 

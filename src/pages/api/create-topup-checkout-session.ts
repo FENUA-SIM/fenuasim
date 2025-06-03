@@ -52,7 +52,7 @@ export default async function handler(
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/topup_success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/cancel`, // You might want a different cancel URL for top-ups
       customer_email: customer_email,
       metadata: metadata,

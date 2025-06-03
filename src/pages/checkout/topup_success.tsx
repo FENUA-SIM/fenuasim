@@ -60,17 +60,19 @@ export default function SuccessPage() {
         if (!orderData) return setOrderStatus("error");
 
         const { data: esimData, error: esimError } = await supabase
-          .from("airalo_orders")
+          .from("airalo_topups")
           .select("*")
-          .eq("package_id", orderData.package_id)
+          .eq("package_id", orderData.airalo_order_id)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
+        console.log("eSIM Data:", esimData);
+
         const { data: packageData, error: packageError } = await supabase
           .from("airalo_packages")
           .select("*")
-          .eq("id", esimData.package_id)
+          .eq("airalo_id", esimData.package_id)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -95,10 +97,6 @@ export default function SuccessPage() {
   }, [session_id]);
 
   const sendEmail = async () => {
-    if (!orderDetails?.esim?.qr_code_url) {
-      console.log("No QR code available, skipping email");
-      return;
-    }
 
     try {
       setEmailStatus("sending");
@@ -106,12 +104,11 @@ export default function SuccessPage() {
       const emailPayload = {
         email: orderDetails.email,
         customerName:
-          orderDetails.esim?.nom || orderDetails.esim?.prenom || "Client",
+          orderDetails.nom || orderDetails.prenom || "Client",
         packageName: orderDetails.package_name,
         destinationName: packageData.region,
         dataUnit: orderDetails.data_unit || "GB",
         validityDays: orderDetails.validity_days,
-        qrCodeUrl: orderDetails.esim.qr_code_url,
       };
 
       const response = await fetch("/api/send-esim-email", {
@@ -139,7 +136,6 @@ export default function SuccessPage() {
   useEffect(() => {
     if (
       orderStatus === "success" &&
-      orderDetails?.esim?.qr_code_url &&
       emailStatus === "pending"
     ) {
       const timer = setTimeout(() => {
@@ -203,7 +199,7 @@ export default function SuccessPage() {
   }
 
   // Check if we have eSIM QR code data
-  const hasEsimData = orderDetails?.esim && orderDetails.esim.qr_code_url;
+  const hasEsimData = orderDetails?.esim;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-orange-50 p-4">
@@ -380,7 +376,7 @@ export default function SuccessPage() {
                   </h2>
                   <div className="flex flex-col items-center justify-center">
                     {/* QR Code Image */}
-                    <div className="mb-6 p-6 bg-white rounded-2xl shadow-lg border-2 border-dashed border-purple-200">
+                    {/* <div className="mb-6 p-6 bg-white rounded-2xl shadow-lg border-2 border-dashed border-purple-200">
                       <img
                         src={orderDetails.esim.qr_code_url}
                         alt="eSIM QR Code"
@@ -390,7 +386,7 @@ export default function SuccessPage() {
                           e.currentTarget.style.display = "none";
                         }}
                       />
-                    </div>
+                    </div> */}
 
                     {/* ICCID Display */}
                     {orderDetails.esim.sim_iccid && (
@@ -398,7 +394,7 @@ export default function SuccessPage() {
                         <p className="text-sm text-gray-600 mb-2">
                           Numéro ICCID de votre eSIM :
                         </p>
-                        <p className="font-mono bg-gray-100 p-3 rounded-xl text-sm border">
+                        <p className="font-mono bg-gray-100 p-3 rounded-xl text-sm text-gray-900 border">
                           {orderDetails.esim.sim_iccid}
                         </p>
                       </div>
@@ -474,68 +470,6 @@ export default function SuccessPage() {
                 </div>
               </div>
 
-              {/* Installation Instructions */}
-              <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                  Instructions d'installation
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-4 p-4 bg-white/80 rounded-xl">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm">
-                      1
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 mb-1">
-                        Scannez le code QR
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        Utilisez l'appareil photo de votre téléphone pour
-                        scanner le code QR
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4 p-4 bg-white/80 rounded-xl">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm">
-                      2
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 mb-1">
-                        Suivez les instructions
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        Ajoutez l'eSIM à votre appareil en suivant les étapes
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4 p-4 bg-white/80 rounded-xl">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm">
-                      3
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 mb-1">
-                        Activez l'eSIM
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        Sélectionnez "Données cellulaires" dans les paramètres
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4 p-4 bg-white/80 rounded-xl">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm">
-                      4
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 mb-1">
-                        Activez l'itinérance
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        Activez l'itinérance si nécessaire pour utiliser votre
-                        forfait
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Support Information */}
               <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
@@ -593,18 +527,6 @@ export default function SuccessPage() {
                   </button>
                 )}
 
-                {/* Add download button if QR code is available */}
-                {hasEsimData && (
-                  <a
-                    href={orderDetails.esim.qr_code_url}
-                    download="esim-qr-code.png"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 px-6 py-4 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-800 transition-all duration-200 text-center shadow-lg hover:shadow-xl"
-                  >
-                    Télécharger le QR Code
-                  </a>
-                )}
               </div>
             </div>
           )}

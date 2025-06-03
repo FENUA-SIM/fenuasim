@@ -21,7 +21,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log("Hellooooooo")
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
@@ -79,10 +78,8 @@ export default async function handler(
       }
 
       if (is_top_up === 'true' && sim_iccid) {
-        // THIS IS A TOP-UP
         console.log(`Processing top-up for ICCID: ${sim_iccid} with package ID: ${packageId}, session: ${session.id}`);
 
-        // Call the local /api/process-airalo-topup endpoint
         const topUpApiRoute = `${process.env.NEXT_PUBLIC_APP_URL}/api/process-airalo-topup`;
         console.log(`Calling local top-up API: ${topUpApiRoute}`);
 
@@ -90,8 +87,6 @@ export default async function handler(
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // Consider adding an internal API key for security if NEXT_PUBLIC_APP_URL is a public domain
-            // "X-Internal-Api-Key": process.env.INTERNAL_API_KEY || "", 
           },
           body: JSON.stringify({
             sim_iccid: sim_iccid,
@@ -117,10 +112,10 @@ export default async function handler(
         // 1. Insert into 'orders' table first to get order_id
         const orderToInsert = {
           stripe_session_id: session.id,
-          package_id: packageId,
+          airalo_order_id: packageId,
           email: customerEmail,
           // Use the Airalo top-up ID from the API response as airalo_order_id for consistency in 'orders'
-          airalo_order_id: topUpApiResult.airalo_topup_id || `topup_tx_${session.id}`,
+          package_id: topUpApiResult.airalo_topup_id || `topup_tx_${session.id}`,
           status: "completed", // Or 'topped_up'
           amount: session.amount_total,
           created_at: new Date().toISOString(),
@@ -131,6 +126,8 @@ export default async function handler(
           price: (session.amount_total ?? 0) / 100,
           currency: session.currency?.toUpperCase() || packageData.currency?.toUpperCase() || "EUR",
           transaction_type: 'topup',
+          nom: session.customer_details?.name || null,
+          prenom: session.customer_details?.name?.split(" ")[0] || null,
           // No esim_iccid or qr_code_url for top-ups in the main order record
         };
 
