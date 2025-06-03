@@ -1,9 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 
-// Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil', // Or your desired API version
+  apiVersion: '2025-04-30.basil',
 });
 
 export default async function handler(
@@ -27,24 +26,24 @@ export default async function handler(
 
     const lineItems = cartItems.map((item: any) => ({
       price_data: {
-        currency: item.currency || 'eur', // Default to EUR if not provided, or use a fixed currency
+        currency: item.currency || 'eur',
         product_data: {
           name: item.name,
           description: item.description || `Top-up for ${sim_iccid}`,
         },
-        unit_amount: Math.round(item.price * 100), // Assuming price is passed in the correct currency unit (e.g., 10.99 for 10.99 EUR)
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: 1,
     }));
 
     const metadata: Stripe.MetadataParam = {
       email: customer_email,
-      packageId: cartItems[0].id, // Assuming the first item is the top-up package
-      cartItems: JSON.stringify(cartItems), // Optional: if you need all cart details in webhook
+      packageId: cartItems[0].id,
+      cartItems: JSON.stringify(cartItems),
     };
 
     if (is_top_up) {
-      metadata.is_top_up = 'true'; // Stripe metadata values are strings
+      metadata.is_top_up = 'true';
       metadata.sim_iccid = sim_iccid;
     }
 
@@ -53,7 +52,7 @@ export default async function handler(
       line_items: lineItems,
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/topup_success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/cancel`, // You might want a different cancel URL for top-ups
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/cancel`,
       customer_email: customer_email,
       metadata: metadata,
     });

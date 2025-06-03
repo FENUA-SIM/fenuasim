@@ -134,17 +134,13 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
               id: cleanedPackagedId,
               name: selectedTopUpPackage.title,
               description: selectedTopUpPackage.shortInfo,
-              // Send the price corresponding to the selected currency.
-              // Your API will need to handle this or you select the price here.
-              price: selectedTopUpPackage.price, // Example: default to EUR or use selected currency
-              currency: currency, // Send selected currency
-              // Ensure your API expects 'price' and 'currency' or adjust accordingly
-              // (e.g., final_price_eur, final_price_usd, final_price_xpf)
+              price: selectedTopUpPackage.price,
+              currency: currency,
             },
           ],
           customer_email: form.email,
-          is_top_up: true, // Flag to indicate this is a top-up
-          sim_iccid: order.sim_iccid, // Pass the ICCID of the SIM to be topped up
+          is_top_up: true,
+          sim_iccid: order.sim_iccid,
         }),
       });
       const { sessionId, error: apiError } = await response.json();
