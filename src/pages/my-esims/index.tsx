@@ -382,7 +382,7 @@ export default function MyEsims() {
                     }
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Top-Up</span>
+                    <span>Recharger</span>
                   </button>
                 </div>
                 {/* Conditionally render the inline top-up section */}

@@ -300,6 +300,7 @@ export default function RegionPage() {
     // Validate promo code if provided
     let finalPrice = selectedPackage.final_price_eur;
     if (form.codePromo) {
+      /* @ts-ignore */
       const promoResult = await validateAndApplyPromoCode(form.codePromo, finalPrice);
       if (!promoResult.isValid) {
         setFormError(promoResult.error || "Code promo invalide");

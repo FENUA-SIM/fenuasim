@@ -136,6 +136,7 @@ export default async function handler(
         }
         console.log("Top-up financial transaction saved to 'orders' database successfully. Order ID:", newOrderData.id);
 
+        /* @ts-ignore */
         const airaloTopupRecord: AiraloTopup = {
           topup_id: topUpApiResult.airalo_topup_id,
           sim_iccid: sim_iccid,

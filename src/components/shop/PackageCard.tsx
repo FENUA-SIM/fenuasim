@@ -1,28 +1,28 @@
-'use client'
+"use client";
 
-import { Database } from '@/lib/supabase/config'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { useState } from 'react'
-import { Zap, Repeat, Calendar, Globe2 } from 'lucide-react'
+import { Database } from "@/lib/supabase/config";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useState } from "react";
+import { Star } from "lucide-react";
 
-type Package = Database['public']['Tables']['airalo_packages']['Row']
+type Package = Database["public"]["Tables"]["airalo_packages"]["Row"];
 
 // Mapping manuel pour les cas particuliers ou noms non standards
 const COUNTRY_CODES: Record<string, string> = {
-  'États-Unis': 'us',
-  'Royaume-Uni': 'gb',
-  'Corée du Sud': 'kr',
-  'Émirats arabes unis': 'ae',
-  'République tchèque': 'cz',
-  'Hong Kong': 'hk',
-  'Taïwan': 'tw',
-  'Japon': 'jp',
-  'Australie': 'au',
-  'Canada': 'ca',
-  'France': 'fr',
-  'Nouvelle-Calédonie': 'nc',
-  'Polynésie française': 'pf',
+  "États-Unis": "us",
+  "Royaume-Uni": "gb",
+  "Corée du Sud": "kr",
+  "Émirats arabes unis": "ae",
+  "République tchèque": "cz",
+  "Hong Kong": "hk",
+  Taïwan: "tw",
+  Japon: "jp",
+  Australie: "au",
+  Canada: "ca",
+  France: "fr",
+  "Nouvelle-Calédonie": "nc",
+  "Polynésie française": "pf",
   // Ajoute ici d'autres cas si besoin
 };
 
@@ -32,34 +32,35 @@ function getCountryCode(regionFr: string | null): string | undefined {
   if (COUNTRY_CODES[regionFr]) return COUNTRY_CODES[regionFr];
   // Fallback : prend les 2 premières lettres (ex: "France" => "fr")
   return regionFr
-    .normalize('NFD')
-    .replace(/[^a-zA-Z]/g, '')
+    .normalize("NFD")
+    .replace(/[^a-zA-Z]/g, "")
     .toLowerCase()
     .slice(0, 2);
 }
 
 function regionFrToSlug(regionFr: string | null): string {
-  if (!regionFr) return '';
+  if (!regionFr) return "";
   return regionFr
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // retire les accents
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // retire les accents
     .toLowerCase()
-    .replace(/[^a-z0-9 ]/g, '') // retire caractères spéciaux
+    .replace(/[^a-z0-9 ]/g, "") // retire caractères spéciaux
     .trim()
-    .replace(/\s+/g, '-'); // espaces en tirets
+    .replace(/\s+/g, "-"); // espaces en tirets
 }
 
 interface PackageCardProps {
-  pkg: Package
-  minData: number
-  maxData: number
-  minDays: number
-  maxDays: number
-  minPrice: number
-  packageCount: number
-  isPopular?: boolean
-  currency: 'EUR' | 'XPF' | 'USD'
-  isRechargeable: boolean
+  pkg: Package;
+  minData: number;
+  maxData: number;
+  minDays: number;
+  maxDays: number;
+  minPrice: number;
+  packageCount: number;
+  isPopular?: boolean;
+  currency: "EUR" | "XPF" | "USD";
+  isRechargeable: boolean;
+  isTop?: boolean;
 }
 
 export default function PackageCard({
@@ -72,121 +73,126 @@ export default function PackageCard({
   packageCount,
   isPopular = false,
   currency,
-  isRechargeable
+  isRechargeable,
+  isTop = false,
 }: PackageCardProps) {
-  const router = useRouter()
-  const [isHovered, setIsHovered] = useState(false)
+  const router = useRouter();
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleClick = () => {
-    const slug = regionFrToSlug(pkg.region_fr || '')
+    const slug = regionFrToSlug(pkg.region_fr || "");
     if (slug) {
-      router.push(`/shop/${slug}`)
+      router.push(`/shop/${slug}`);
     }
-  }
+  };
 
   // console.log('pkggg',pkg)
 
   // Prix dynamique selon la devise
-  let price = pkg.final_price_eur
-  let symbol = '€'
-  if (currency === 'XPF') {
-    price = pkg.final_price_xpf
-    symbol = '₣'
-  } else if (currency === 'USD') {
-    price = pkg.final_price_usd
-    symbol = '$'
+  let price = pkg.final_price_eur;
+  let symbol = "€";
+  if (currency === "XPF") {
+    price = pkg.final_price_xpf;
+    symbol = "₣";
+  } else if (currency === "USD") {
+    price = pkg.final_price_usd;
+    symbol = "$";
   }
 
-  const countryCode = getCountryCode(pkg.country || null)
+  const countryCode = getCountryCode(pkg.country || null);
+
+  const cardClasses = isTop
+    ? "group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-purple-200 hover:border-purple-400 transform hover:-translate-y-2 cursor-pointer overflow-hidden w-full"
+    : "group relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-300 transform hover:-translate-y-1 cursor-pointer overflow-hidden w-full";
 
   return (
-    <div
-      onClick={handleClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`group bg-white border-2 rounded-3xl shadow-lg p-0 flex flex-col justify-between transition-all duration-200 cursor-pointer relative overflow-hidden
-        ${isHovered ? 'border-purple-500 shadow-2xl scale-[1.025]' : 'border-purple-100'}
-      `}
-      style={{ minHeight: 320 }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-6 pb-2">
-        <div className="flex items-center gap-3">
-          {countryCode && (
-            <img
-              src={`https://flagcdn.com/w40/${countryCode}.png`}
-              alt={pkg.region_fr || ''}
-              width={32}
-              height={24}
-              className="rounded border border-gray-200 shadow-sm"
-              style={{ minWidth: 32 }}
-            />
-          )}
-          <span className="text-lg font-bold text-purple-700 leading-tight">
-            {pkg.region_fr}
-          </span>
+    <div className={cardClasses} onClick={handleClick}>
+      {/* Premium Badge pour les top destinations */}
+      {isTop && (
+        <div className="absolute top-2 right-2 z-10">
+          <div className="bg-gradient-to-r from-purple-600 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center">
+            <Star className="w-3 h-3 mr-1" />
+            <span className="hidden xs:inline">TOP</span>
+          </div>
         </div>
-        {isPopular && (
-          <span className="flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">
-            <Zap className="w-4 h-4" /> Populaire
-          </span>
-        )}
-      </div>
+      )}
 
-      {/* Infos principales */}
-      <div className="flex-1 flex flex-col justify-center items-center gap-2 px-6">
-        <div className="flex gap-3 w-full justify-center mb-2">
-          <div className="flex flex-col items-center flex-1">
-            <span className="flex items-center gap-1 text-purple-700 font-semibold text-base">
-              <Globe2 className="w-4 h-4" /> {pkg.data_amount} {pkg.data_unit}
-            </span>
-            <span className="text-xs text-purple-400 font-medium">Data</span>
-          </div>
-          <div className="flex flex-col items-center flex-1">
-            <span className="flex items-center gap-1 text-purple-700 font-semibold text-base">
-              <Calendar className="w-4 h-4" /> {pkg.duration} {pkg.duration_unit}
-            </span>
-            <span className="text-xs text-purple-400 font-medium">Durée</span>
-          </div>
-          <div className="flex flex-col items-center flex-1">
-            {pkg.operator_logo_url ? (
+      <div className="p-4 sm:p-6">
+        {/* Header avec drapeau et nom */}
+        <div className="flex items-center mb-3 sm:mb-4">
+          <div className="relative w-8 h-6 sm:w-12 sm:h-8 mr-2 sm:mr-3 rounded overflow-hidden shadow-sm flex-shrink-0">
+            {countryCode && (
               <Image
-                src={pkg.operator_logo_url}
-                alt={pkg.operator_name || ''}
-                width={28}
-                height={28}
-                className="rounded-full bg-white border border-gray-100 mb-1"
+                src={`https://flagcdn.com/w40/${countryCode}.png`}
+                alt={pkg.region_fr || ""}
+                fill
+                className="object-cover"
+                unoptimized
               />
-            ) : (
-              <span className="flex items-center gap-1 text-purple-700 font-semibold text-base">
-                <Globe2 className="w-4 h-4" />
-              </span>
             )}
-            <span className="text-xs text-purple-400 font-medium">Opérateur</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3
+              className={`font-bold truncate ${isTop ? "text-base sm:text-lg text-purple-800" : "text-sm sm:text-base text-gray-800"}`}
+            >
+              {pkg.region_fr}
+            </h3>
           </div>
         </div>
-        <div className="w-full flex justify-center mb-2">
-          <span className="text-2xl font-extrabold text-purple-700">
-            {price} {symbol}
-          </span>
-        </div>
-      </div>
+        {/* Informations principales */}
+        <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+          {/* Prix minimum */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs sm:text-sm text-gray-600">
+              À partir de
+            </span>
+            <span
+              className={`font-bold ${isTop ? "text-lg sm:text-2xl text-purple-600" : "text-base sm:text-xl text-purple-500"}`}
+            >
+              {price}
+              {symbol}
+            </span>
+          </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between px-6 pb-6 pt-2">
-        {isRechargeable && (
-          <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-200">
-            <Repeat className="w-4 h-4" /> Rechargeable
-          </span>
-        )}
+          {/* Durée maximum */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs sm:text-sm text-gray-600">Jusqu'à</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-800">
+              {pkg.validity_days} days
+            </span>
+          </div>
+
+          {/* Opérateur */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs sm:text-sm text-gray-600">Opérateur</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-800 truncate ml-2 max-w-20 sm:max-w-none">
+              {pkg.operator_name}
+            </span>
+          </div>
+        </div>
+
+        {/* Bouton d'action */}
         <button
-          className="flex-1 ml-auto py-3 px-0 bg-gradient-to-r from-purple-600 to-orange-500 text-white font-bold rounded-2xl shadow-md hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-lg tracking-wide outline-none border-0 focus:ring-2 focus:ring-purple-400"
-          style={{ minWidth: 120 }}
+          className={`w-full py-2 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 ${
+            isTop
+              ? "bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white shadow-lg hover:shadow-xl"
+              : "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg"
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick();
+          }}
         >
-          Acheter
+          <span className="hidden xs:inline">
+            {isTop ? "Découvrir" : "Voir les forfaits"}
+          </span>
+          <span className="xs:hidden">Voir</span>
         </button>
       </div>
-      {/* Effet de sélection (bordure animée) possible à ajouter ici si besoin */}
+      {/* Effet de gradient en overlay pour les top destinations */}
+      {isTop && (
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/20 to-orange-50/20 pointer-events-none" />
+      )}
     </div>
-  )
-} 
+  );
+}
