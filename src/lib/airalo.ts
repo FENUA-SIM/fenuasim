@@ -1,9 +1,9 @@
-const AIRALO_API_URL = "https://sandbox-partners-api.airalo.com/api/v2";
+const AIRALO_API_URL = "https://sandbox-partners-api.airalo.com/v2";
 
 let cachedToken: string | null = null;
 let tokenExpiry: number | null = null;
 
-async function getAiraloToken() {
+export async function getAiraloToken() {
   if (cachedToken && tokenExpiry && Date.now() < tokenExpiry) {
     return cachedToken;
   }
@@ -13,11 +13,13 @@ async function getAiraloToken() {
     body: JSON.stringify({
       client_id: process.env.AIRALO_CLIENT_ID,
       client_secret: process.env.AIRALO_CLIENT_SECRET,
+      grant_type: "client_credentials",
     }),
   });
-  const data = await res.json();
-  cachedToken = data.access_token;
-  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000; // marge de 1 min
+  console.log("Airalo token response:", res);
+  const responseData = await res.json();
+  cachedToken = responseData.data.access_token;
+  tokenExpiry = Date.now() + (responseData.data.expires_in - 60) * 1000; // marge de 1 min
   return cachedToken;
 }
 

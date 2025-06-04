@@ -9,6 +9,76 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      promo_code_usage: {
+        Row: {
+          id: number
+          promo_code_id: number
+          order_id: string
+          user_email: string
+          used_at: string
+        }
+        Insert: {
+          id?: number
+          promo_code_id: number
+          order_id: string
+          user_email: string
+          used_at?: string
+        }
+        Update: {
+          id?: number
+          promo_code_id?: number
+          order_id?: string
+          user_email?: string
+          used_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_usage_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      promo_codes: {
+        Row: {
+          id: number
+          code: string
+          discount_percentage: number | null
+          discount_amount: number | null
+          is_active: boolean
+          valid_from: string
+          valid_until: string
+          usage_limit: number
+          times_used: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          code: string
+          discount_percentage?: number | null
+          discount_amount?: number | null
+          is_active?: boolean
+          valid_from: string
+          valid_until: string
+          usage_limit: number
+          times_used?: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          code?: string
+          discount_percentage?: number | null
+          discount_amount?: number | null
+          is_active?: boolean
+          valid_from?: string
+          valid_until?: string
+          usage_limit?: number
+          times_used?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
       airalo_errors: {
         Row: {
           created_at: string
@@ -444,21 +514,6 @@ export type Database = {
           sku?: string
           updated_at?: string
           validity_days?: number
-        }
-        Relationships: []
-      }
-      promo_codes: {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
         }
         Relationships: []
       }
