@@ -134,6 +134,7 @@ export default async function handler(
 
   let airaloApiToken = "";
   try {
+    /* @ts-ignore */
     airaloApiToken = await getAiraloToken();
     console.log("🔑 Airalo Token: ", airaloApiToken);
   } catch (error) {
