@@ -35,6 +35,7 @@ export default function Navbar() {
         <ul className="hidden md:flex items-center gap-6 font-medium text-gray-700">
           <li><Link href="/" className="nav-link">Accueil</Link></li>
           <li><Link href="/shop" className="nav-link">Nos eSIM</Link></li>
+          <li><Link href="/my-esims" className="nav-link">Mes eSIM</Link></li>
           <li><Link href="/compatibilite" className="nav-link">Compatibilité</Link></li>
           <li><Link href="/faq" className="nav-link">FAQ</Link></li>
           <li><Link href="/contact" className="nav-link">Contact</Link></li>
