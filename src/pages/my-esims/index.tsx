@@ -13,9 +13,9 @@ import {
   Eye,
   Copy,
 } from "lucide-react";
+/* @ts-ignore */
 import TopUpInlineSection from "@/components/my-esims/TopUpInlineSection";
 
-// Type definitions
 interface SupabaseUser {
   id: string;
   email: string;
