@@ -77,7 +77,7 @@ export default async function handler(
       if (is_top_up === 'true' && sim_iccid) {
         console.log(`Processing top-up for ICCID: ${sim_iccid} with package ID: ${packageId}, session: ${session.id}`);
 
-        const topUpApiRoute = `${process.env.NEXT_PUBLIC_APP_URL}/api/process-airalo-topup`;
+        const topUpApiRoute = `/api/process-airalo-topup`;
         console.log(`Calling local top-up API: ${topUpApiRoute}`);
 
         const topUpResponse = await fetch(topUpApiRoute, {
