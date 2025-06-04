@@ -319,7 +319,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
             </button>
         )}
 
-        <div className={`w-full grid ${topUpPackages.length === 1 ? 'grid-cols-1 justify-center' : 'grid-cols-1 md:grid-cols-2'} gap-4 max-w-3xl mx-auto`}>
+        <div className={`w-full grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto`}>
           {displayPackages.map((pkg) => {
             let price = pkg.price;
             let symbol = "€";
@@ -334,7 +334,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
             return (
               <div
                 key={pkg.id}
-                className={`bg-white rounded-xl border-2 p-4 flex flex-col items-center shadow-md transition-all duration-200 cursor-pointer ${
+                className={`bg-white rounded-xl border-2 p-4 sm:p-6 flex flex-col items-center shadow-md w-full max-w-xs sm:max-w-sm mx-auto transition-all duration-200 cursor-pointer ${
                   selectedTopUpPackage?.id === pkg.id
                     ? "border-purple-500 ring-2 ring-purple-500"
                     : "border-gray-200 hover:border-purple-300 hover:shadow-lg"
@@ -377,19 +377,19 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                   {symbol}
                   {price.toFixed(2)}
                 </div>
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center w-full">
                   <div className="w-full mb-4">
-                    <form onSubmit={handlePromoCodeSubmit} className="flex gap-2">
+                    <form onSubmit={handlePromoCodeSubmit} className="flex flex-col sm:flex-row gap-2 w-full">
                       <input
                         type="text"
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         placeholder="Code promo"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                        className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
                       />
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                       >
                         Appliquer
                       </button>
@@ -405,7 +405,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleAcheter(pkg); }}
-                    className="w-full mt-auto py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-sm flex items-center justify-center gap-2"
+                    className="w-full mt-auto py-3 sm:py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-base sm:text-sm flex items-center justify-center gap-2"
                   >
                     <ShoppingCart className="w-4 h-4" />
                     Recharger
@@ -430,8 +430,8 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
 
       {/* Recap Modal (rendered as part of this inline section) */}
       {showRecapModal && selectedTopUpPackage && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-lg w-full relative">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 max-w-lg w-full relative">
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
               onClick={() => setShowRecapModal(false)}
@@ -447,7 +447,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
               <p className="text-red-500 text-sm mb-3">{formError}</p>
             )}
             <form onSubmit={handleRecapSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                 <div>
                   <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
                   <input type="text" name="prenom" id="prenom" value={form.prenom} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500"/>
