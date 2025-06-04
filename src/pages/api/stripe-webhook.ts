@@ -50,10 +50,7 @@ export default async function handler(
 
     try {
       const { packageId, is_top_up, sim_iccid, promo_code } = session.metadata || {};
-      if(!is_top_up ||!sim_iccid) {
-        console.error("Missing required metadata for top-up session:", session.id);
-        throw new Error("Missing required metadata for top-up session");
-      }
+      console.log("Package ID:", packageId);
       if (!packageId) {
         console.error("Package ID not found in session metadata for session:", session.id);
         throw new Error("Package ID not found in session metadata");
@@ -229,20 +226,19 @@ export default async function handler(
         console.log("New order saved to database successfully.");
       }
 
-      // If there's a promo code, record its usage
       if (promo_code) {
         const { data: promoCodeData, error: promoError } = await supabase
           .from('promo_codes')
-          .select('id')
+          .select('*')
           .eq('code', promo_code)
           .single();
 
         if (!promoError && promoCodeData) {
-          // Update times_used
+          const timesUsed=promoCodeData.times_used + 1;
           await supabase
             .from('promo_codes')
-            .update({ times_used: supabase.rpc('increment_times_used', { promo_code_id: promoCodeData.id }) })
-            .eq('id', promoCodeData.id);
+            .update({ times_used: timesUsed  })
+            .eq('code', promoCodeData.code);
 
           // Record usage
           await supabase

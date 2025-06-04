@@ -70,7 +70,7 @@ export default function SuccessPage() {
         const { data: packageData, error: packageError } = await supabase
           .from("airalo_packages")
           .select("*")
-          .eq("id", esimData.package_id)
+          .eq("airalo_id", esimData.package_id)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
