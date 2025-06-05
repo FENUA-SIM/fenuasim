@@ -39,7 +39,6 @@ export default function Navbar() {
           <li><Link href="/compatibilite" className="nav-link">Compatibilité</Link></li>
           <li><Link href="/faq" className="nav-link">FAQ</Link></li>
           <li><Link href="/contact" className="nav-link">Contact</Link></li>
-          <li><LanguageSelector /></li>
           <li>
             <Link
               href="/cart"
@@ -84,7 +83,6 @@ export default function Navbar() {
           <Link href="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
           <Link href="/cart" onClick={() => setMenuOpen(false)}>Panier</Link>
           <Link href="/dashboard" onClick={() => setMenuOpen(false)}>Mon espace</Link>
-          <LanguageSelector />
         </div>
       )}
     </header>
