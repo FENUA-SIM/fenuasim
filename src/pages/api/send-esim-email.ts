@@ -57,7 +57,7 @@ export default async function handler(
 
     // Email options
     const mailOptions = {
-      from: `"eSIM Service" <hello@fenuasim.com>`,
+      from: `"FENUASIM" <hello@fenuasim.com>`,
       to: email,
       subject: `Votre eSIM pour ${destinationName} est prête ! 🌐`,
       html: emailHTML,
