@@ -2,7 +2,7 @@ const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-const AIRALO_API_URL = 'https://partners-api.airalo.com/v2';
+const AIRALO_API_URL = 'https://sandbox-partners-api.airalo.com/v2';
 const AIRALO_CLIENT_ID = process.env.AIRALO_CLIENT_ID;
 const AIRALO_CLIENT_SECRET = process.env.AIRALO_CLIENT_SECRET;
 const SUPABASE_URL = process.env.SUPABASE_URL;

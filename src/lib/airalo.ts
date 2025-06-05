@@ -1,4 +1,4 @@
-const AIRALO_API_URL = "https://partners-api.airalo.com/v2";
+const AIRALO_API_URL = "https://sandbox-partners-api.airalo.com/v2";
 
 let cachedToken: string | null = null;
 let tokenExpiry: number | null = null;

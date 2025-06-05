@@ -59,7 +59,7 @@ async function callAiraloTopUpAPI(
   console.log(
     `Attempting Airalo top-up for ICCID: ${payload.iccid} with package: ${payload.package_id}`
   );
-  const AIRALO_TOPUP_API_ENDPOINT = "https://partners-api.airalo.com/v2/orders/topups"; // VERIFY THIS ENDPOINT
+  const AIRALO_TOPUP_API_ENDPOINT = "https://sandbox-partners-api.airalo.com/v2/orders/topups"; // VERIFY THIS ENDPOINT
 
   const response = await fetch(AIRALO_TOPUP_API_ENDPOINT, {
     method: "POST",

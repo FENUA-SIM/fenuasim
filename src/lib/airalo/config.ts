@@ -1,4 +1,4 @@
-export const AIRALO_API_URL = 'https://partners-api.airalo.com/v2'
+export const AIRALO_API_URL = 'https://sandbox-partners-api.airalo.com/v2'
 export const AIRALO_CLIENT_ID = process.env.AIRALO_CLIENT_ID
 export const AIRALO_CLIENT_SECRET = process.env.AIRALO_CLIENT_SECRET
 
