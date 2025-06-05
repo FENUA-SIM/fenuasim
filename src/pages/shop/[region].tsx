@@ -577,7 +577,7 @@ export default function RegionPage() {
                           }}
                           className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-base"
                         >
-                          Buy · Secure payment
+                          Acheter - Paiement Sécurisé
                         </button>
                       </div>
                     );

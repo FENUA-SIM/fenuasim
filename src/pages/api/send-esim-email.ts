@@ -23,13 +23,12 @@ export default async function handler(
     } = req.body;
 
     // Validate required fields
-    if (!email || !qrCodeUrl || !destinationName) {
+    if (!email || !destinationName) {
       return res.status(400).json({
         message: "Missing required fields",
-        required: ["email", "qrCodeUrl", "destinationName"],
+        required: ["email", "destinationName"],
         received: {
           email: !!email,
-          qrCodeUrl: !!qrCodeUrl,
           destinationName: !!destinationName,
         },
       });
@@ -62,22 +61,17 @@ export default async function handler(
       to: email,
       subject: `Votre eSIM pour ${destinationName} est prête ! 🌐`,
       html: emailHTML,
-      // Optional: Add plain text version
-      text: `
-        Bonjour ${customerName || "Client"},
-        
-        Votre eSIM pour ${destinationName} est maintenant prête !
-        
-        Détails:
-        - Forfait: ${packageName}
-        - Données: ${dataAmount} ${dataUnit}
-        - Validité: ${validityDays} jours
-        
-        Pour installer votre eSIM, scannez le code QR disponible dans la version HTML de cet email.
-        
-        Cordialement,
-        L'équipe eSIM Service
-      `,
+      text:
+        `Bonjour ${customerName || "Client"},\n\n` +
+        `Votre eSIM pour ${destinationName} est maintenant prête !\n\n` +
+        `Détails:\n` +
+        `- Forfait: ${packageName}\n` +
+        `- Données: ${dataAmount} ${dataUnit}\n` +
+        `- Validité: ${validityDays} jours\n` +
+        (qrCodeUrl
+          ? "\nPour installer votre eSIM, scannez le code QR disponible dans la version HTML de cet email.\n"
+          : "\nPour installer votre eSIM, veuillez suivre les instructions fournies dans votre espace client ou contactez notre support si besoin.\n") +
+        `\nCordialement,\nL'équipe eSIM Service\n`,
       headers: {
         "List-Unsubscribe":
           "<mailto:unsubscribe@fenuasim.com>, <https://fenuasim.com/unsubscribe>",

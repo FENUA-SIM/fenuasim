@@ -398,7 +398,7 @@ export default function SuccessPage() {
                         <p className="text-sm text-gray-600 mb-2">
                           Numéro ICCID de votre eSIM :
                         </p>
-                        <p className="font-mono bg-gray-100 p-3 rounded-xl text-sm border">
+                        <p className="text-gray-800 font-mono bg-gray-100 p-3 rounded-xl text-sm border">
                           {orderDetails.esim.sim_iccid}
                         </p>
                       </div>

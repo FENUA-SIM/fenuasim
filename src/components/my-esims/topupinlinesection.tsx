@@ -385,7 +385,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         placeholder="Code promo"
-                        className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                        className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-gray-800"
                       />
                       <button
                         type="submit"
@@ -450,16 +450,16 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                 <div>
                   <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
-                  <input type="text" name="prenom" id="prenom" value={form.prenom} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500"/>
+                  <input type="text" name="prenom" id="prenom" value={form.prenom} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-800"/>
                 </div>
                 <div>
                   <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
-                  <input type="text" name="nom" id="nom" value={form.nom} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500"/>
+                  <input type="text" name="nom" id="nom" value={form.nom} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-800"/>
                 </div>
               </div>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" name="email" id="email" value={form.email} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500"/>
+                <input type="email" name="email" id="email" value={form.email} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-800"/>
               </div>
               <div className="pt-4">
                 <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold py-3 px-4 rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300">
