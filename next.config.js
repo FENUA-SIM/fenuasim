@@ -4,7 +4,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'sandbox.airalo.com',
+        hostname: 'partners.airalo.com',
         pathname: '/images/**',
       },
       {
