@@ -8,7 +8,7 @@ export default function MentionsLegales() {
           <h2 className="text-xl font-semibold text-purple-700 mb-4">1. Éditeur du site</h2>
           <ul className="list-disc list-inside text-gray-700 space-y-2">
             <li>Nom du site : FENUA SIM</li>
-            <li>Propriétaire / Responsable de publication : THOMAS LEBEAU</li>
+            <li>Propriétaire / Responsable de publication : FENUA SIM SASU</li>
             <li>Adresse : 58 rue Monceau 75008</li>
             <li>Email : contact@fenuasim.com</li>
             <li>Numéro de téléphone : +33 7 56 86 06 01</li>
