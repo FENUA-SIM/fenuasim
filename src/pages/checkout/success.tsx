@@ -51,6 +51,7 @@ export default function SuccessPage() {
           .from("orders")
           .select("*")
           .eq("stripe_session_id", session_id)
+          .limit(1)
           .maybeSingle();
 
         if (orderError) {
