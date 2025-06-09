@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAiraloToken } from "@/lib/airalo";
 
-const AIRALO_API_URL = "https://sandbox-partners-api.airalo.com/v2";
+const AIRALO_API_URL = process.env.AIRALO_API_URL;
 
 export default async function handler(
   req: NextApiRequest,

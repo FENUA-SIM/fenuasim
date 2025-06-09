@@ -1,3 +1,4 @@
+import { AIRALO_API_URL } from '@/lib/airalo/config';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAiraloToken } from "@/lib/airalo";
 // Supabase client is not directly used here for inserts anymore, but getAiraloApiToken might use it if refactored
@@ -59,7 +60,8 @@ async function callAiraloTopUpAPI(
   console.log(
     `Attempting Airalo top-up for ICCID: ${payload.iccid} with package: ${payload.package_id}`
   );
-  const AIRALO_TOPUP_API_ENDPOINT = "https://sandbox-partners-api.airalo.com/v2/orders/topups"; // VERIFY THIS ENDPOINT
+  const AIRALO_API_URL = process.env.AIRALO_API_URL;
+  const AIRALO_TOPUP_API_ENDPOINT = `${AIRALO_API_URL}/orders/topups`;
 
   const response = await fetch(AIRALO_TOPUP_API_ENDPOINT, {
     method: "POST",

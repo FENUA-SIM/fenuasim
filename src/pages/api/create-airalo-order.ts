@@ -1,227 +1,111 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
-import fetch from 'node-fetch';
+import { AIRALO_API_URL } from '@/lib/airalo/config';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { supabase } from "@/lib/supabaseClient";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-interface OrderParams {
-  customerEmail: string;
-  customerName?: string;
-  customerFirstname?: string;
-  packageId: string;
-  airaloResponse?: any;
-}
-
-interface AiraloResponse {
-  data: {
-    id: string;
-    status?: string;
-    activated_at?: string;
-    expires_at?: string;
-    data_balance?: string;
-    sims?: Array<{
-      iccid?: string;
-      qrcode_url?: string;
-      direct_apple_installation_url?: string;
-    }>;
-  };
-}
-
-// Interface pour la réponse d'authentification Airalo
-interface AiraloAuthResponse {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
-}
-
-// Interface pour la réponse de création de commande Airalo
-interface AiraloOrderResponse {
-  data: {
-    id: string;
-    status?: string;
-    activated_at?: string;
-    expires_at?: string;
-    data_balance?: string;
-    sims?: Array<{
-      iccid?: string;
-      qrcode_url?: string;
-      direct_apple_installation_url?: string;
-    }>;
-  };
-}
-
-// Obtenir le token d'authentification Airalo
-async function getAiraloToken(): Promise<string> {
-  try {
-    console.log("🔑 Obtention du token Airalo...");
-    const apiUrl = 'https://api.airalo.com/api/v2/auth';
-    console.log("URL:", apiUrl);
-    
-    if (!process.env.AIRALO_EMAIL || !process.env.AIRALO_PASSWORD) {
-      throw new Error("Identifiants Airalo manquants dans les variables d'environnement");
-    }
-
-    console.log("Email:", process.env.AIRALO_EMAIL);
-    
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Fenuasim/1.0',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        email: process.env.AIRALO_EMAIL,
-        password: process.env.AIRALO_PASSWORD,
-      }),
-    });
-
-    console.log("Status:", response.status);
-    console.log("Status Text:", response.statusText);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Réponse d'erreur:", errorText);
-      throw new Error(`Erreur d'authentification Airalo: ${response.statusText} - ${errorText}`);
-    }
-
-    const data: AiraloAuthResponse = await response.json();
-    console.log("✅ Token Airalo obtenu avec succès");
-    return data.access_token;
-  } catch (error) {
-    console.error("❌ Erreur lors de l'obtention du token Airalo:", error);
-    if (error instanceof Error) {
-      console.error("Message d'erreur:", error.message);
-      console.error("Stack trace:", error.stack);
-    }
-    throw error;
-  }
-}
-
-// Créer une commande Airalo
-async function createAiraloOrder(params: OrderParams, token: string): Promise<AiraloOrderResponse> {
-  try {
-    console.log("📦 Création de la commande Airalo...");
-    const apiUrl = 'https://api.airalo.com/api/v2/orders';
-    console.log("URL:", apiUrl);
-    console.log("Token:", token.substring(0, 10) + "...");
-    
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'User-Agent': 'Fenuasim/1.0',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        package_id: params.packageId,
-        email: params.customerEmail,
-        first_name: params.customerFirstname,
-        last_name: params.customerName,
-      }),
-    });
-
-    console.log("Status:", response.status);
-    console.log("Status Text:", response.statusText);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Réponse d'erreur:", errorText);
-      throw new Error(`Erreur lors de la création de la commande Airalo: ${response.statusText} - ${errorText}`);
-    }
-
-    const data: AiraloOrderResponse = await response.json();
-    console.log("✅ Commande Airalo créée avec succès");
-    return data;
-  } catch (error) {
-    console.error("❌ Erreur lors de la création de la commande Airalo:", error);
-    throw error;
-  }
-}
+// import { createClient } from '@supabase/supabase-js';
+// const corsHeaders = {
+//   'Access-Control-Allow-Origin': '*',
+//   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Handle CORS preflight
+//   if (req.method === 'OPTIONS') {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
+//     return res.status(200).send('ok');
+//   }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Méthode non autorisée' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Vérification des variables d'environnement
-    console.log("🔍 Vérification des variables d'environnement...");
-    console.log("SUPABASE_URL:", process.env.SUPABASE_URL ? "✅ Présent" : "❌ Manquant");
-    console.log("SUPABASE_SERVICE_ROLE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "✅ Présent" : "❌ Manquant");
-    console.log("AIRALO_EMAIL:", process.env.AIRALO_EMAIL ? "✅ Présent" : "❌ Manquant");
-    console.log("AIRALO_PASSWORD:", process.env.AIRALO_PASSWORD ? "✅ Présent" : "❌ Manquant");
+    const { packageId, customerEmail, airalo_id, customerName, customerFirstname, quantity, description } = req.body;
 
-    const params = await req.body;
-    console.log("📥 Params reçus :", JSON.stringify(params, null, 2));
+    // // Create Supabase client
+    // const supabaseClient = createClient(
+    //   process.env.SUPABASE_URL ?? '',
+    //   process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
+    // );
 
-    // Vérification des champs obligatoires
-    if (!params.packageId || !params.customerEmail) {
-      return res.status(400).json({ error: "Package ID et email client requis" });
-    }
-
-    // Obtenir le token Airalo
-    const token = await getAiraloToken();
-
-    // Créer la commande Airalo
-    const airaloResponse = await createAiraloOrder(params, token);
-
-    // Enregistrer la commande dans la base de données
-    const orderId = await saveOrderToDatabase(params, airaloResponse);
-
-    res.status(200).json({ 
-      success: true,
-      orderId,
-      airaloOrder: airaloResponse.data 
+    // 1. Get Access Token from Airalo
+    const AIRALO_API_URL = process.env.AIRALO_API_URL;
+    const tokenResponse = await fetch(`${AIRALO_API_URL}/token`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        client_id: process.env.AIRALO_CLIENT_ID ?? '',
+        client_secret: process.env.AIRALO_CLIENT_SECRET ?? '',
+        grant_type: 'client_credentials'
+      })
     });
-  } catch (error) {
-    console.error("❌ Erreur lors de la création de la commande:", error);
-    res.status(500).json({ 
-      error: "Erreur lors de la création de la commande",
-      details: error instanceof Error ? error.message : 'Erreur inconnue'
+
+    if (!tokenResponse.ok) {
+      const tokenError = await tokenResponse.text();
+      throw new Error(`Failed to get Airalo access token: ${tokenError}`);
+    }
+
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.data.access_token;
+
+    // 2. Submit Order to Airalo
+    const orderBody = {
+      package_id: airalo_id,
+      quantity: quantity || 1,
+      type: 'sim',
+      customer_name: customerName,
+      brand_settings_name: '',
+      description: description
+    };
+
+    const orderResponse = await fetch(`${AIRALO_API_URL}/orders`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      },
+      body: JSON.stringify(orderBody)
     });
-  }
-}
+    console.log("Airalo order response here: ", orderResponse);
 
-// Enregistrer la commande dans la base de données
-async function saveOrderToDatabase(params: OrderParams, airaloResponse: AiraloOrderResponse) {
-  try {
-    console.log("Enregistrement de la commande dans la base de données...");
-    const orderData = airaloResponse.data;
-    const sim = orderData.sims && orderData.sims.length > 0 ? orderData.sims[0] : {};
-
-    // Vérification des champs obligatoires
-    if (!orderData.id || !params.customerEmail || !params.packageId) {
-      throw new Error("Données manquantes pour l'enregistrement de la commande.");
+    const orderText = await orderResponse.clone().text();
+    if (!orderResponse.ok) {
+      throw new Error(`Airalo API error: ${orderText}`);
     }
+    const orderData = JSON.parse(orderText);
 
-    const { data, error } = await supabase.from('airalo_orders').insert({
-      order_id: orderData.id,
-      email: params.customerEmail,
-      package_id: params.packageId,
-      sim_iccid: sim.iccid || null,
-      qr_code_url: sim.qrcode_url || null,
-      apple_installation_url: sim.direct_apple_installation_url || null,
-      status: orderData.status || null,
-      activated_at: orderData.activated_at || null,
-      expires_at: orderData.expires_at || null,
-      data_balance: orderData.data_balance || null,
-      nom: params.customerName || null,
-      prenom: params.customerFirstname || null
-    }).select('id').single();
+    // 3. Save Order to Supabase
+    const sim = orderData.data.sims?.[0];
+    const { data: order, error } = await supabase.from('airalo_orders').insert({
+      order_id: orderData.data.id.toString(),
+      email: customerEmail,
+      package_id: packageId,
+      sim_iccid: sim?.iccid || null,
+      qr_code_url: sim?.qrcode_url || null,
+      apple_installation_url: sim?.direct_apple_installation_url || null,
+      status: orderData.meta?.message || "success",
+      data_balance: orderData.data.data || null,
+      created_at: new Date().toISOString(),
+      nom: customerName,
+      prenom: customerFirstname
+    }).select().single();
 
-    if (error) {
-      console.error("Erreur lors de l'enregistrement de la commande:", error);
-      throw error;
-    }
-    console.log("Commande enregistrée avec ID:", data.id);
-    return data.id;
-  } catch (error) {
-    console.error("Erreur lors de l'enregistrement de la commande:", error);
-    throw error;
+    if (error) throw error;
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({ order });
+  } catch (error: any) {
+    console.error('Erreur API:', error);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(400).json({
+      error: error instanceof Error ? error.message : String(error)
+    });
   }
 }

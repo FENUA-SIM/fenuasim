@@ -45,14 +45,20 @@ export default async function handler(
 
     if (session.payment_status !== "paid") {
       console.log(`Session ${session.id} not paid yet.`);
-      return res.status(200).json({ received: true, status: "payment_not_paid" });
+      return res
+        .status(200)
+        .json({ received: true, status: "payment_not_paid" });
     }
 
     try {
-      const { packageId, is_top_up, sim_iccid, promo_code } = session.metadata || {};
+      const { packageId, is_top_up, sim_iccid, promo_code } =
+        session.metadata || {};
       console.log("Package ID:", packageId);
       if (!packageId) {
-        console.error("Package ID not found in session metadata for session:", session.id);
+        console.error(
+          "Package ID not found in session metadata for session:",
+          session.id
+        );
         throw new Error("Package ID not found in session metadata");
       }
 
@@ -68,14 +74,18 @@ export default async function handler(
         .single();
 
       if (packageError || !packageData) {
-        console.error(`Failed to retrieve package data for packageId ${packageId}: ${packageError?.message || "not found"}`);
+        console.error(
+          `Failed to retrieve package data for packageId ${packageId}: ${packageError?.message || "not found"}`
+        );
         throw new Error(
           `Failed to retrieve package data: ${packageError?.message || "not found"}`
         );
       }
 
-      if (is_top_up === 'true' && sim_iccid) {
-        console.log(`Processing top-up for ICCID: ${sim_iccid} with package ID: ${packageId}, session: ${session.id}`);
+      if (is_top_up === "true" && sim_iccid) {
+        console.log(
+          `Processing top-up for ICCID: ${sim_iccid} with package ID: ${packageId}, session: ${session.id}`
+        );
 
         const topUpApiRoute = `${process.env.NEXT_PUBLIC_BASE_URL}/api/process-airalo-topup`;
         console.log(`Calling local top-up API: ${topUpApiRoute}`);
@@ -94,20 +104,26 @@ export default async function handler(
         const topUpApiResult = await topUpResponse.json();
 
         if (!topUpResponse.ok || !topUpApiResult.success) {
-          console.error(`Failed to process Airalo top-up via local API: ${topUpResponse.status} - ${topUpApiResult.message || 'Unknown API error'}`);
+          console.error(
+            `Failed to process Airalo top-up via local API: ${topUpResponse.status} - ${topUpApiResult.message || "Unknown API error"}`
+          );
           throw new Error(
             `Failed to process Airalo top-up: ${topUpApiResult.message || topUpResponse.statusText}`
           );
         }
 
-        console.log("Local Airalo top-up API processed successfully:", topUpApiResult);
+        console.log(
+          "Local Airalo top-up API processed successfully:",
+          topUpApiResult
+        );
 
         const orderToInsert = {
           stripe_session_id: session.id,
           airalo_order_id: packageId,
           email: customerEmail,
           // Use the Airalo top-up ID from the API response as airalo_order_id for consistency in 'orders'
-          package_id: topUpApiResult.airalo_topup_id || `topup_tx_${session.id}`,
+          package_id:
+            topUpApiResult.airalo_topup_id || `topup_tx_${session.id}`,
           status: "completed",
           amount: session.amount_total,
           created_at: new Date().toISOString(),
@@ -116,8 +132,11 @@ export default async function handler(
           data_unit: packageData.data_unit,
           validity_days: packageData.validity_days,
           price: (session.amount_total ?? 0) / 100,
-          currency: session.currency?.toUpperCase() || packageData.currency?.toUpperCase() || "EUR",
-          transaction_type: 'topup',
+          currency:
+            session.currency?.toUpperCase() ||
+            packageData.currency?.toUpperCase() ||
+            "EUR",
+          transaction_type: "topup",
           nom: session.customer_details?.name || null,
           prenom: session.customer_details?.name?.split(" ")[0] || null,
         };
@@ -129,12 +148,17 @@ export default async function handler(
           .single();
 
         if (orderError || !newOrderData) {
-          console.error(`Failed to save top-up financial transaction to 'orders' database: ${orderError?.message}`);
+          console.error(
+            `Failed to save top-up financial transaction to 'orders' database: ${orderError?.message}`
+          );
           throw new Error(
             `Failed to save top-up financial transaction: ${orderError?.message}`
           );
         }
-        console.log("Top-up financial transaction saved to 'orders' database successfully. Order ID:", newOrderData.id);
+        console.log(
+          "Top-up financial transaction saved to 'orders' database successfully. Order ID:",
+          newOrderData.id
+        );
 
         /* @ts-ignore */
         const airaloTopupRecord: AiraloTopup = {
@@ -144,7 +168,10 @@ export default async function handler(
           email: customerEmail,
           package_id: packageId,
           amount: (session.amount_total ?? 0) / 100,
-          currency: session.currency?.toUpperCase() || packageData.currency?.toUpperCase() || "EUR",
+          currency:
+            session.currency?.toUpperCase() ||
+            packageData.currency?.toUpperCase() ||
+            "EUR",
           created_at: new Date().toISOString(),
         };
 
@@ -153,32 +180,35 @@ export default async function handler(
           .insert(airaloTopupRecord);
 
         if (airaloTopupError) {
-          console.error(`Failed to save top-up details to 'airalo_topups' database: ${airaloTopupError.message}`);
+          console.error(
+            `Failed to save top-up details to 'airalo_topups' database: ${airaloTopupError.message}`
+          );
           throw new Error(
             `Failed to save top-up details to airalo_topups: ${airaloTopupError.message}`
           );
         }
-        console.log("Top-up details saved to 'airalo_topups' database successfully.");
-
+        console.log(
+          "Top-up details saved to 'airalo_topups' database successfully."
+        );
       } else {
-        console.log(`Processing new order for package ID: ${packageId}, session: ${session.id}`);
+        console.log(
+          `Processing new order for package ID: ${packageId}, session: ${session.id}`
+        );
         const edgeFunctionResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-airalo-order`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/create-airalo-order`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-              "x-api-key": process.env.EDGE_FUNCTION_API_KEY || "",
             },
             body: JSON.stringify({
-              packageId, 
-              airalo_id: packageData.airalo_id, 
+              packageId,
+              airalo_id: packageData.airalo_id,
               customerEmail,
               customerName: session.customer_details?.name || "Customer",
               customerFirstname:
                 session.customer_details?.name?.split(" ")[0] || "Customer",
-              quantity: 1, 
+              quantity: 1,
               description: `Order from Stripe session ${session.id}`,
             }),
           }
@@ -186,22 +216,30 @@ export default async function handler(
 
         if (!edgeFunctionResponse.ok) {
           const errorText = await edgeFunctionResponse.text();
-          console.error(`Failed to create Airalo order via Edge Function: ${edgeFunctionResponse.status} - ${errorText}`);
+          console.error(
+            `Failed to create Airalo order via Edge Function: ${edgeFunctionResponse.status} - ${errorText}`
+          );
           throw new Error(
             `Failed to create Airalo order: ${edgeFunctionResponse.status} - ${errorText}`
           );
         }
 
         const airaloOrderData = await edgeFunctionResponse.json();
-        console.log("Airalo order created successfully via Edge Function:", airaloOrderData);
+        console.log(
+          "Airalo order created successfully via Edge Function:",
+          airaloOrderData
+        );
 
         const orderToInsert = {
           stripe_session_id: session.id,
           package_id: packageId,
           email: customerEmail,
-          airalo_order_id: airaloOrderData.order_reference || airaloOrderData.id || `new_order_${session.id}`,
-          esim_iccid: airaloOrderData.iccid, 
-          qr_code_url: airaloOrderData.qr_code, 
+          airalo_order_id:
+            airaloOrderData.order_reference ||
+            airaloOrderData.id ||
+            `new_order_${session.id}`,
+          esim_iccid: airaloOrderData.iccid,
+          qr_code_url: airaloOrderData.qr_code,
           status: "completed",
           amount: session.amount_total,
           created_at: new Date().toISOString(),
@@ -210,8 +248,11 @@ export default async function handler(
           data_unit: packageData.data_unit,
           validity_days: packageData.validity_days,
           price: (session.amount_total ?? 0) / 100,
-          currency: session.currency?.toUpperCase() || packageData.currency?.toUpperCase() || "EUR",
-          transaction_type: 'new_order',
+          currency:
+            session.currency?.toUpperCase() ||
+            packageData.currency?.toUpperCase() ||
+            "EUR",
+          transaction_type: "new_order",
         };
 
         const { error: orderError } = await supabase
@@ -219,7 +260,9 @@ export default async function handler(
           .insert(orderToInsert);
 
         if (orderError) {
-          console.error(`Failed to save new order to database: ${orderError.message}`);
+          console.error(
+            `Failed to save new order to database: ${orderError.message}`
+          );
           throw new Error(
             `Failed to save new order to database: ${orderError.message}`
           );
@@ -229,43 +272,46 @@ export default async function handler(
 
       if (promo_code) {
         const { data: promoCodeData, error: promoError } = await supabase
-          .from('promo_codes')
-          .select('*')
-          .eq('code', promo_code)
+          .from("promo_codes")
+          .select("*")
+          .eq("code", promo_code)
           .single();
 
         if (!promoError && promoCodeData) {
-          const timesUsed=promoCodeData.times_used + 1;
+          const timesUsed = promoCodeData.times_used + 1;
           await supabase
-            .from('promo_codes')
-            .update({ times_used: timesUsed  })
-            .eq('code', promoCodeData.code);
+            .from("promo_codes")
+            .update({ times_used: timesUsed })
+            .eq("code", promoCodeData.code);
 
           // Record usage
-          await supabase
-            .from('promo_code_usage')
-            .insert({
-              promo_code_id: promoCodeData.id,
-              order_id: session.id,
-              user_email: session.customer_details?.email || session.metadata?.email,
-              used_at: new Date().toISOString()
-            });
+          await supabase.from("promo_code_usage").insert({
+            promo_code_id: promoCodeData.id,
+            order_id: session.id,
+            user_email:
+              session.customer_details?.email || session.metadata?.email,
+            used_at: new Date().toISOString(),
+          });
         }
       }
 
       return res.status(200).json({ received: true, processed: true });
-
     } catch (error) {
       console.error("Webhook processing error:", error);
       return res.status(500).json({
         received: true,
         processed: false,
-        error: error instanceof Error ? error.message : "Unknown webhook processing error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown webhook processing error",
       });
     }
   } else {
     console.log(`Received unhandled event type: ${event.type}`);
   }
 
-  return res.status(200).json({ received: true, status: "event_unhandled_or_processed" });
+  return res
+    .status(200)
+    .json({ received: true, status: "event_unhandled_or_processed" });
 }

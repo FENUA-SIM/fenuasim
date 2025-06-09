@@ -1,7 +1,7 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const AIRALO_API_URL = 'https://sandbox-partners-api.airalo.com/v2';
+const AIRALO_API_URL = process.env.AIRALO_API_URL;
 const AIRALO_CLIENT_ID = process.env.AIRALO_CLIENT_ID;
 const AIRALO_CLIENT_SECRET = process.env.AIRALO_CLIENT_SECRET;
 
