@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // );
 
     // 1. Get Access Token from Airalo
-    const AIRALO_API_URL = process.env.NEXT_PUBLIC_AIRALO_API_URL;
+    const AIRALO_API_URL = process.env.AIRALO_API_URL;
     const tokenResponse = await fetch(`${AIRALO_API_URL}/token`, {
       method: 'POST',
       headers: {

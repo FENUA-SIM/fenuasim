@@ -1,4 +1,4 @@
-const AIRALO_API_URL = process.env.NEXT_PUBLIC_AIRALO_API_URL;
+const AIRALO_API_URL = process.env.AIRALO_API_URL;
 
 let cachedToken: string | null = null;
 let tokenExpiry: number | null = null;
