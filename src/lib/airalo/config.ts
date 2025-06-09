@@ -1,4 +1,4 @@
-export const AIRALO_API_URL = process.env.AIRALO_API_URL
+export const AIRALO_API_URL = process.env.NEXT_PUBLIC_AIRALO_API_URL
 export const AIRALO_CLIENT_ID = process.env.AIRALO_CLIENT_ID
 export const AIRALO_CLIENT_SECRET = process.env.AIRALO_CLIENT_SECRET
 
