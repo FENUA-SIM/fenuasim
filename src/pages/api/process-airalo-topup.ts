@@ -73,7 +73,7 @@ async function callAiraloTopUpAPI(
     body: JSON.stringify(payload),
   });
 
-  const responseBodyText = await response.text(); // Read body once
+  const responseBodyText = await response.text();
 
   if (!response.ok) {
     console.error(`Airalo Top-Up API Error: ${response.status} - ${responseBodyText}`);
