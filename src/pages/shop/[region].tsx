@@ -621,7 +621,7 @@ export default function RegionPage() {
               ))}
             </div>
           </div>
-          <div className="my-6 p-3 text-gray-600 font-semibold rounded shadow bg-gray-100">✅ All packages are rechargeable after ordering from your customer area</div>
+          <div className="my-6 p-3 text-gray-600 font-semibold rounded shadow bg-gray-100">✅ Tous les forfaits sont rechargeables après commande depuis votre espace client</div>
         </div>
       </section>
 
