@@ -2,20 +2,7 @@ import { AIRALO_API_URL } from '@/lib/airalo/config';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from "@/lib/supabaseClient";
 
-// import { createClient } from '@supabase/supabase-js';
-// const corsHeaders = {
-//   'Access-Control-Allow-Origin': '*',
-//   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-// };
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Handle CORS preflight
-//   if (req.method === 'OPTIONS') {
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-//     res.setHeader('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
-//     return res.status(200).send('ok');
-//   }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -23,11 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { packageId, customerEmail, airalo_id, customerName, customerFirstname, quantity, description } = req.body;
 
-    // // Create Supabase client
-    // const supabaseClient = createClient(
-    //   process.env.SUPABASE_URL ?? '',
-    //   process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
-    // );
 
     // 1. Get Access Token from Airalo
     const AIRALO_API_URL = process.env.AIRALO_API_URL;
