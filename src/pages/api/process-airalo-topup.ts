@@ -47,7 +47,7 @@ interface ProcessedAiraloTopUpResponse {
   success: boolean;
   message?: string;
   airalo_topup_id?: string; // Changed from reference_id to be more specific
-  airalo_response_data?: AiraloApiActualResponseData; // To pass full data back if needed
+  airalo_response_data?: AiraloApiActualResponseData;
 }
 
 async function callAiraloTopUpAPI(
