@@ -31,10 +31,10 @@ export default function ResetPassword() {
       if (error) throw error;
 
       setSuccess("Votre mot de passe a été réinitialisé avec succès");
-      // Redirect to login page after 2 seconds
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
+      
+      // The onAuthStateChange listener in _app.tsx will handle the sign out
+      // and redirect to login page
+      
     } catch (error: any) {
       setError(error.message);
     } finally {
