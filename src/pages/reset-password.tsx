@@ -1,15 +1,39 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { supabase } from '@/lib/supabase';
-import { Lock, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { supabase } from "@/lib/supabase";
+import { Lock, ArrowRight } from "lucide-react";
 
 export default function ResetPassword() {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [user, setUser] = useState();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    try {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      if (error || !user) {
+        router.push("/login");
+        return;
+      }
+      setUser(user as any);
+    } catch (error) {
+      console.error("Error:", error);
+      router.push("/login");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,17 +49,16 @@ export default function ResetPassword() {
 
     try {
       const { error } = await supabase.auth.updateUser({
-        password: password
+        password: password,
       });
 
       if (error) throw error;
 
       setSuccess("Votre mot de passe a été réinitialisé avec succès");
-      
+
       // Sign out and redirect in the current tab
       await supabase.auth.signOut();
-      router.push('/login');
-      
+      router.push("/login");
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -47,7 +70,9 @@ export default function ResetPassword() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-orange-50 flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8 bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-white/20">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Réinitialiser le mot de passe</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Réinitialiser le mot de passe
+          </h2>
           <p className="text-gray-600">Entrez votre nouveau mot de passe</p>
         </div>
 
@@ -66,7 +91,10 @@ export default function ResetPassword() {
         <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Nouveau mot de passe
               </label>
               <div className="relative">
@@ -85,7 +113,10 @@ export default function ResetPassword() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Confirmer le mot de passe
               </label>
               <div className="relative">
@@ -125,4 +156,4 @@ export default function ResetPassword() {
       </div>
     </div>
   );
-} 
+}
