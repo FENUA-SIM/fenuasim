@@ -40,19 +40,6 @@ export default function Navbar() {
           <li><Link href="/faq" className="nav-link">FAQ</Link></li>
           <li><Link href="/contact" className="nav-link">Contact</Link></li>
           <li>
-            <Link
-              href="/cart"
-              className={`relative group nav-link ${pathname === '/cart' ? 'pointer-events-none opacity-50' : ''}`}
-            >
-              <ShoppingCart className="inline-block" size={22} />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full px-2 py-0.5 shadow-lg border-2 border-white animate-bounce">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-          </li>
-          <li>
             <Link href="/dashboard" className="nav-link">
               <span className="inline-flex items-center gap-1">
                 <User className="inline-block" size={22} />

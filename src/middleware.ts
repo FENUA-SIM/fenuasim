@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getSession();
 
   // Si l'utilisateur n'est pas connecté et essaie d'accéder au dashboard
-  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
+  if (!session) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = '/login';
     redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname);
@@ -22,5 +22,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: [],
 }; 
