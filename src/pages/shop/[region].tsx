@@ -69,23 +69,26 @@ function slugToRegionFr(slug: string): string {
     .join(" ");
 }
 
-async function validateAndApplyPromoCode(code: string, packagePrice: number): Promise<{
+async function validateAndApplyPromoCode(
+  code: string,
+  packagePrice: number
+): Promise<{
   isValid: boolean;
   discountedPrice: number;
   error?: string;
 }> {
   try {
     const { data: promoCode, error } = await supabase
-      .from('promo_codes')
-      .select('*')
-      .eq('code', code)
+      .from("promo_codes")
+      .select("*")
+      .eq("code", code)
       .single();
 
     if (error || !promoCode) {
       return {
         isValid: false,
         discountedPrice: packagePrice,
-        error: 'Code promo invalide'
+        error: "Code promo invalide",
       };
     }
 
@@ -94,47 +97,54 @@ async function validateAndApplyPromoCode(code: string, packagePrice: number): Pr
       return {
         isValid: false,
         discountedPrice: packagePrice,
-        error: 'Ce code promo n\'est plus actif'
+        error: "Ce code promo n'est plus actif",
       };
     }
 
     // Check validity dates
     const now = new Date();
-    if (new Date(promoCode.valid_from) > now || new Date(promoCode.valid_until) < now) {
+    if (
+      new Date(promoCode.valid_from) > now ||
+      new Date(promoCode.valid_until) < now
+    ) {
       return {
         isValid: false,
         discountedPrice: packagePrice,
-        error: 'Ce code promo n\'est plus valide'
+        error: "Ce code promo n'est plus valide",
       };
     }
 
     // Check usage limit
-    if (promoCode.usage_limit && promoCode.times_used >= promoCode.usage_limit) {
+    if (
+      promoCode.usage_limit &&
+      promoCode.times_used >= promoCode.usage_limit
+    ) {
       return {
         isValid: false,
         discountedPrice: packagePrice,
-        error: 'Ce code promo a atteint sa limite d\'utilisation'
+        error: "Ce code promo a atteint sa limite d'utilisation",
       };
     }
 
     // Calculate discounted price
     let discountedPrice = packagePrice;
     if (promoCode.discount_percentage) {
-      discountedPrice = packagePrice * (1 - promoCode.discount_percentage / 100);
+      discountedPrice =
+        packagePrice * (1 - promoCode.discount_percentage / 100);
     } else if (promoCode.discount_amount) {
       discountedPrice = Math.max(0, packagePrice - promoCode.discount_amount);
     }
 
     return {
       isValid: true,
-      discountedPrice
+      discountedPrice,
     };
   } catch (error) {
-    console.error('Error validating promo code:', error);
+    console.error("Error validating promo code:", error);
     return {
       isValid: false,
       discountedPrice: packagePrice,
-      error: 'Une erreur est survenue lors de la validation du code promo'
+      error: "Une erreur est survenue lors de la validation du code promo",
     };
   }
 }
@@ -151,6 +161,7 @@ export default function RegionPage() {
   const [showCartModal, setShowCartModal] = useState(false);
   const [showSimulator, setShowSimulator] = useState(false);
   const [showRecapModal, setShowRecapModal] = useState(false);
+  const [destinationInfo, setDestinationInfo] = useState();
   const [form, setForm] = useState({
     nom: "",
     prenom: "",
@@ -209,6 +220,13 @@ export default function RegionPage() {
           .from("airalo_packages")
           .select("*")
           .eq("region_fr", regionFr);
+
+        const { data: dest, error: destError } = await supabase
+          .from("destination_info")
+          .select("*")
+          .eq("name", regionFr);
+        /* @ts-ignore */
+        setDestinationInfo(dest);
 
         const region = regionFr.toLowerCase().replace(/\s+/g, "-");
         const { data } = await supabase.storage
@@ -330,7 +348,7 @@ export default function RegionPage() {
               name: selectedPackage.name,
               description: selectedPackage.description,
               final_price_eur: finalPrice,
-              promo_code: form.codePromo || undefined
+              promo_code: form.codePromo || undefined,
             },
           ],
           customer_email: form.email,
@@ -435,17 +453,18 @@ export default function RegionPage() {
                   />
                 </svg>
                 <span className="text-gray-700 text-sm">
-                  {selectedPackage?.description ?? ""}
+                  {/* @ts-ignore */}
+                  {destinationInfo[0].description ?? ""}
                 </span>
               </div>
             </div>
             <div>
-                <button
+              <button
                 className="bg-gradient-to-r from-purple-600 to-orange-500 text-white px-6 py-2.5 rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-sm sm:text-base font-semibold"
-                onClick={() => router.push('/compatibilite')}
-                >
+                onClick={() => router.push("/compatibilite")}
+              >
                 Vérifier la compatibilité
-                </button>
+              </button>
             </div>
           </div>
 
@@ -621,7 +640,10 @@ export default function RegionPage() {
               ))}
             </div>
           </div>
-          <div className="my-6 p-3 text-gray-600 font-semibold rounded shadow bg-gray-100">✅ Tous les forfaits sont rechargeables après commande depuis votre espace client</div>
+          <div className="my-6 p-3 text-gray-600 font-semibold rounded shadow bg-gray-100">
+            ✅ Tous les forfaits sont rechargeables après commande depuis votre
+            espace client
+          </div>
         </div>
       </section>
 

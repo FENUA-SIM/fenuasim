@@ -59,7 +59,8 @@ export default function Navbar() {
 
       {/* Menu Mobile plein écran */}
       {menuOpen && (
-        <div className="fixed inset-0 bg-white z-50 p-6 pt-24 flex flex-col gap-6 text-gray-800 font-medium text-lg overflow-y-auto">
+        <div className="fixed inset-0 bg-white z-50 h-screen p-6 pt-24 flex flex-col gap-6 text-gray-800 font-medium text-lg">
+
           <button onClick={() => setMenuOpen(false)} className="absolute top-6 right-6">
             <X size={28} />
           </button>

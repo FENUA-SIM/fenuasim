@@ -305,7 +305,7 @@ export default function MyEsims() {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-row">
+                <div className="flex flex-col gap-4 items-center sm:gap-0 sm:flex-row">
                   {order.status === "success" && order.qr_code_url && (
                     <div className="flex-1 bg-gradient-to-r from-purple-50 to-orange-50 p-4 rounded-xl">
                       <div className="flex items-center justify-between">
@@ -373,15 +373,14 @@ export default function MyEsims() {
                     </div>
                   )}
                   <button
-                    className="flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white px-4 rounded-xl shadow hover:from-orange-600 hover:to-purple-700 transition-all duration-200 font-semibold ml-4"
+                    className="h-10 w-40 sm:flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white px-4 rounded-xl shadow hover:from-orange-600 hover:to-purple-700 transition-all duration-200 font-semibold ml-4"
                     onClick={() =>
                       setExpandedTopUpOrderId(
                         expandedTopUpOrderId === order.id ? null : order.id
                       )
                     }
                   >
-                    <Plus className="w-4 h-4" />
-                    <span>Recharger</span>
+                    <span>+ Recharger</span>
                   </button>
                 </div>
                 {/* Conditionally render the inline top-up section */}
