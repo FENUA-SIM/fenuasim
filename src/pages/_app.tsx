@@ -13,6 +13,7 @@ export default function App({ Component, pageProps }: AppProps) {
           "What would you like your new password to be?"
         );
         const { data, error } = await supabase.auth.updateUser({
+          /* @ts-ignore */
           password: newPassword,
         });
         if (data) alert("Password updated successfully!");
