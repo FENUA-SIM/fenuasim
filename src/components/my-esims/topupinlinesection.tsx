@@ -379,7 +379,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                 </div>
                 <div className="flex flex-col items-center w-full">
                   <div className="w-full mb-4">
-                    <form onSubmit={handlePromoCodeSubmit} className="flex flex-col sm:flex-row gap-2 w-full">
+                    <form onSubmit={handlePromoCodeSubmit} className="flex flex-col lg:flex-row gap-2 w-full">
                       <input
                         type="text"
                         value={promoCode}
