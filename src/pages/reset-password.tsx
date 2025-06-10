@@ -32,8 +32,9 @@ export default function ResetPassword() {
 
       setSuccess("Votre mot de passe a été réinitialisé avec succès");
       
-      // The onAuthStateChange listener in _app.tsx will handle the sign out
-      // and redirect to login page
+      // Sign out and redirect in the current tab
+      await supabase.auth.signOut();
+      router.push('/login');
       
     } catch (error: any) {
       setError(error.message);
