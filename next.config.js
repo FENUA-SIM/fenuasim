@@ -12,6 +12,11 @@ const nextConfig = {
         hostname: 'hptbhujyrhjsquckzckc.supabase.co',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.airalo.com',
+        pathname: '/**',
+      },
     ],
     domains: ['hptbhujyrhjsquckzckc.supabase.co'],
   },

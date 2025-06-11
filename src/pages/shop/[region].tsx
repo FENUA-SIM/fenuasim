@@ -16,6 +16,7 @@ type Package = Database["public"]["Tables"]["airalo_packages"]["Row"] & {
   region_image_url?: string;
   region_description?: string;
   region_slug?: string;
+  image_url?: string;
 };
 
 type DataTip = {
@@ -171,8 +172,6 @@ export default function RegionPage() {
   });
   const [formError, setFormError] = useState<string | null>(null);
 
-  // console.log(packages);
-
   // Panier stocké dans le localStorage
   const [cart, setCart] = useState<Package[]>([]);
 
@@ -318,8 +317,11 @@ export default function RegionPage() {
     // Validate promo code if provided
     let finalPrice = selectedPackage.final_price_eur;
     if (form.codePromo) {
-      /* @ts-ignore */
-      const promoResult = await validateAndApplyPromoCode(form.codePromo, finalPrice);
+      const promoResult = await validateAndApplyPromoCode(
+        form.codePromo,
+        /* @ts-ignore */
+        finalPrice
+      );
       if (!promoResult.isValid) {
         setFormError(promoResult.error || "Code promo invalide");
         return;
@@ -375,6 +377,19 @@ export default function RegionPage() {
     setCurrentIndex((prev) => (prev === packages.length - 1 ? 0 : prev + 1));
   };
 
+  const selectedPackagePrice = () => {
+    let price = selectedPackage?.final_price_eur;
+    let symbol = "€";
+    if (currency === "USD") {
+      price = selectedPackage?.final_price_usd;
+      symbol = "$";
+    } else if (currency === "XPF") {
+      price = selectedPackage?.final_price_xpf;
+      symbol = "₣";
+    }
+    return `${price} ${currency === "USD" ? "$" : currency === "XPF" ? "₣" : "€"}`;
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8 lg:space-y-10">
       {/* Bloc 1 : Présentation destination (2 colonnes) */}
@@ -382,7 +397,7 @@ export default function RegionPage() {
         <div className="relative w-1/3 h-[40rem] hidden md:block rounded-lg overflow-hidden">
           <Image
             src={destinationImage}
-            alt="USA"
+            alt="Region"
             fill
             className="object-cover"
           />
@@ -396,28 +411,13 @@ export default function RegionPage() {
             <div className="flex flex-row">
               {/* Image ou drapeau à gauche */}
               <div className="pt-4 h-30 mr-4 overflow-hidden relative">
-                {packages[0]?.region_image_url ? (
-                  <Image
-                    src={packages[0].region_image_url}
-                    alt={packages[0]?.region_fr || ""}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  (() => {
-                    const region = packages[0]?.region_fr || "";
-                    const code = packages[0]?.country?.toLowerCase() || "";
-                    return (
-                      <img
-                        src={`https://flagcdn.com/w160/${code}.png`}
-                        alt={region}
-                        width={70}
-                        height={20}
-                        className="rounded object-cover"
-                      />
-                    );
-                  })()
-                )}
+                <img
+                  src={packages[0]?.flag_url ?? ""}
+                  alt={packages[0]?.region_fr || ""}
+                  width={70}
+                  height={20}
+                  className="rounded object-cover"
+                />
               </div>
               {/* Titre + description à droite */}
               <div className="flex flex-col justify-start md:text-left">
@@ -430,7 +430,9 @@ export default function RegionPage() {
                 </p>
               </div>
             </div>
-            <div className="hidden md:flex text-xl sm:text-2xl font-bold text-purple-700">{`${selectedPackage?.price ?? ""} ${currency === "USD" ? "$" : currency === "XPF" ? "₣" : "€"}`}</div>
+            <div className="hidden md:flex text-xl sm:text-2xl font-bold text-purple-700">
+              {selectedPackagePrice()}
+            </div>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-start w-full mt-12">
             <div className="flex flex-col space-y-6 mb-3 md:mb-0">
@@ -454,7 +456,7 @@ export default function RegionPage() {
                 </svg>
                 <span className="text-gray-700 text-sm">
                   {/* @ts-ignore */}
-                  {destinationInfo[0].description ?? ""}
+                  {destinationInfo[0]?.description ?? "Description"}
                 </span>
               </div>
             </div>
@@ -539,26 +541,13 @@ export default function RegionPage() {
                       >
                         {/* Flag and Name */}
                         <div className="flex items-center gap-3 mb-3">
-                          {pkg.region_image_url ? (
-                            <Image
-                              src={pkg.region_image_url}
-                              alt={pkg.region_fr || ""}
-                              width={40}
-                              height={28}
-                              className="rounded object-cover border"
-                            />
-                          ) : (
-                            <img
-                              src={
-                                pkg.operator_logo_url ??
-                                `https://flagcdn.com/w40/${countryCode}.png`
-                              }
-                              alt={""}
-                              width={40}
-                              height={28}
-                              className="rounded object-cover border"
-                            />
-                          )}
+                          <img
+                            src={pkg.image_url}
+                            alt={""}
+                            width={40}
+                            height={28}
+                            className="rounded object-cover border"
+                          />
                           <h3 className="text-lg font-bold text-purple-800">
                             {pkg.name}
                           </h3>

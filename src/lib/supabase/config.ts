@@ -184,6 +184,7 @@ export type Database = {
           last_synced_at: string | null
           name: string | null
           operator_logo_url: string | null
+          flag_url: string | null
           operator_name: string | null
           price: number | null
           price_eur: number | null
@@ -198,7 +199,7 @@ export type Database = {
           slug: string | null
           type: string | null
           updated_at: string | null
-          validity_days: number | null
+          validity: number | null
         }
         Insert: {
           airalo_id?: string | null
@@ -234,7 +235,7 @@ export type Database = {
           slug?: string | null
           type?: string | null
           updated_at?: string | null
-          validity_days?: number | null
+          validity?: number | null
         }
         Update: {
           airalo_id?: string | null

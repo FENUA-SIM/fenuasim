@@ -19,6 +19,7 @@ interface RegionStats {
 
 interface DestinationCardProps {
   region: string;
+  flag_url: string;
   stats: RegionStats;
   currency: "EUR" | "USD" | "XPF";
   isTop?: boolean;
@@ -48,6 +49,7 @@ function DestinationCard({
   stats,
   currency,
   isTop = false,
+  flag_url,
 }: DestinationCardProps) {
   const router = useRouter();
 
@@ -88,7 +90,7 @@ function DestinationCard({
         <div className="flex items-center mb-3 sm:mb-4">
           <div className="relative w-8 h-6 sm:w-12 sm:h-8 mr-2 sm:mr-3 rounded overflow-hidden shadow-sm flex-shrink-0">
             <Image
-              src={`https://flagcdn.com/w40/${stats.countryCode.toLowerCase()}.png`}
+              src={stats.countryCode.toLowerCase()}
               alt={`Drapeau ${region}`}
               fill
               className="object-cover"
@@ -237,7 +239,7 @@ export default function Shop() {
         .filter((price) => price > 0);
 
       const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-      const maxDays = Math.max(...pkgs.map((p) => p.validity_days || 0));
+      const maxDays = Math.max(...pkgs.map((p) => parseInt(p.validity?.toString().charAt(0) || "0")));
       
       // Get unique operators
       const operatorNames = Array.from(
@@ -246,7 +248,7 @@ export default function Shop() {
       const mainOperator = operatorNames[0] || "Airalo";
 
       // Get country code from the first package
-      const countryCode = pkgs[0]?.country || "xx";
+      const countryCode = pkgs[0]?.flag_url || "xx";
 
       acc[region] = {
         minPrice,
