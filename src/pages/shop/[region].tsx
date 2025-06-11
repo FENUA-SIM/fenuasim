@@ -348,7 +348,7 @@ export default function RegionPage() {
             {
               id: selectedPackage.airalo_id,
               name: selectedPackage.name,
-              description: selectedPackage.description,
+              description: selectedPackage.description ?? "",
               final_price_eur: finalPrice,
               promo_code: form.codePromo || undefined,
             },
