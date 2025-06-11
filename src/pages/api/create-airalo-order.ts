@@ -32,9 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.data.access_token;
-
-    // 2. Submit Order to Airalo
+    const accessToken = tokenDat
     const orderBody = {
       package_id: airalo_id,
       quantity: quantity || 1,
@@ -61,7 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const orderData = JSON.parse(orderText);
 
-    // 3. Save Order to Supabase
     const sim = orderData.data.sims?.[0];
     const { data: order, error } = await supabase.from('airalo_orders').insert({
       order_id: orderData.data.id.toString(),
