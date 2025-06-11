@@ -158,7 +158,7 @@ export default function PackageCard({
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm text-gray-600">Jusqu'à</span>
             <span className="text-xs sm:text-sm font-medium text-gray-800">
-              {pkg.validity_days} days
+              {pkg.validity} days
             </span>
           </div>
 

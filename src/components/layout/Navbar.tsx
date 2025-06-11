@@ -66,6 +66,7 @@ export default function Navbar() {
           </button>
           <Link href="/" onClick={() => setMenuOpen(false)}>Accueil</Link>
           <Link href="/shop" onClick={() => setMenuOpen(false)}>Nos eSIM</Link>
+          <Link href="/my-esims" onClick={() => setMenuOpen(false)}>Mes eSIM</Link>
           <Link href="/compatibilite" onClick={() => setMenuOpen(false)}>Compatibilité</Link>
           <Link href="/faq" onClick={() => setMenuOpen(false)}>FAQ</Link>
           <Link href="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
