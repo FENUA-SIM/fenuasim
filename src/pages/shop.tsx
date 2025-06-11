@@ -19,7 +19,6 @@ interface RegionStats {
 
 interface DestinationCardProps {
   region: string;
-  flag_url: string;
   stats: RegionStats;
   currency: "EUR" | "USD" | "XPF";
   isTop?: boolean;
@@ -49,7 +48,6 @@ function DestinationCard({
   stats,
   currency,
   isTop = false,
-  flag_url,
 }: DestinationCardProps) {
   const router = useRouter();
 
