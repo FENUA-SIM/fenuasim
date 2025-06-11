@@ -346,7 +346,7 @@ export default function RegionPage() {
         body: JSON.stringify({
           cartItems: [
             {
-              id: selectedPackage.airalo_id,
+              id: selectedPackage.id,
               name: selectedPackage.name,
               description: selectedPackage.description ?? "",
               final_price_eur: finalPrice,
