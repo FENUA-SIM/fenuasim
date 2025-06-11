@@ -70,8 +70,10 @@ export default async function handler(
       const { data: packageData, error: packageError } = await supabase
         .from("airalo_packages")
         .select("*")
-        .eq("airalo_id", packageId)
-        .single();
+        .eq("id", packageId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       if (packageError || !packageData) {
         console.error(
@@ -246,7 +248,7 @@ export default async function handler(
           package_name: packageData.name,
           data_amount: packageData.data_amount,
           data_unit: packageData.data_unit,
-          validity: packageData.validity,
+          validity: parseInt(packageData.validity.toString().charAt(0)),
           price: (session.amount_total ?? 0) / 100,
           currency:
             session.currency?.toUpperCase() ||

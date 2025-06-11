@@ -51,6 +51,7 @@ export default function SuccessPage() {
           .from("orders")
           .select("*")
           .eq("stripe_session_id", session_id)
+          .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
@@ -71,7 +72,7 @@ export default function SuccessPage() {
         const { data: packageData, error: packageError } = await supabase
           .from("airalo_packages")
           .select("*")
-          .eq("airalo_id", esimData.package_id)
+          .eq("id", esimData.package_id)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
