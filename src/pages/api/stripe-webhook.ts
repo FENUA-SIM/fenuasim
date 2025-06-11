@@ -97,7 +97,7 @@ export default async function handler(
           },
           body: JSON.stringify({
             sim_iccid: sim_iccid,
-            airalo_package_id: `${packageData.id}-topup`,
+            airalo_package_id: `${packageData.airalo_id}-topup`,
           }),
         });
 
@@ -203,7 +203,7 @@ export default async function handler(
             },
             body: JSON.stringify({
               packageId,
-              airalo_id: packageData.id,
+              airalo_id: packageData.airalo_id,
               customerEmail,
               customerName: session.customer_details?.name || "Customer",
               customerFirstname:
