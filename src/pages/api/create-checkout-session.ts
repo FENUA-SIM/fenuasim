@@ -28,7 +28,7 @@ export default async function handler(
           currency: 'eur',
           product_data: {
             name: item.name,
-            description: item.description ?? "",
+            description: item.description || 'No description provided',
           },
           unit_amount: Math.round(item.final_price_eur * 100),
         },
