@@ -97,7 +97,7 @@ async function syncPackages() {
             region: region,
             type: operator.type || null,
             data_amount,
-            validity_days: pkg.day,
+            validity: pkg.day,
             includes_voice: pkg.voice !== null,
             includes_sms: pkg.text !== null,
             available_topup: operator.rechargeability || false,

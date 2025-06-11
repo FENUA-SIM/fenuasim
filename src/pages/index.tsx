@@ -68,8 +68,8 @@ export default function Home() {
       acc[region] = {
         minData: Math.min(...pkgs.map((p) => p.data_amount ?? 0)),
         maxData: Math.max(...pkgs.map((p) => p.data_amount ?? 0)),
-        minDays: Math.min(...pkgs.map((p) => p.validity_days ?? 0)),
-        maxDays: Math.max(...pkgs.map((p) => p.validity_days ?? 0)),
+        minDays: Math.min(...pkgs.map((p) => p.validity ?? 0)),
+        maxDays: Math.max(...pkgs.map((p) => p.validity ?? 0)),
         minPrice: Math.min(...pkgs.map((p) => p.final_price_eur ?? 0)),
         packageCount: pkgs.length,
       };

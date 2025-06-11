@@ -130,7 +130,7 @@ export default async function handler(
           package_name: packageData.name,
           data_amount: packageData.data_amount,
           data_unit: packageData.data_unit,
-          validity_days: packageData.validity_days,
+          validity: packageData.validity,
           price: (session.amount_total ?? 0) / 100,
           currency:
             session.currency?.toUpperCase() ||
@@ -246,7 +246,7 @@ export default async function handler(
           package_name: packageData.name,
           data_amount: packageData.data_amount,
           data_unit: packageData.data_unit,
-          validity_days: packageData.validity_days,
+          validity: packageData.validity,
           price: (session.amount_total ?? 0) / 100,
           currency:
             session.currency?.toUpperCase() ||

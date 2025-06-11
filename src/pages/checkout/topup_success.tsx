@@ -110,7 +110,7 @@ export default function SuccessPage() {
         packageName: orderDetails.package_name,
         destinationName: packageData.region,
         dataUnit: orderDetails.data_unit || "GB",
-        validityDays: orderDetails.validity_days,
+        validityDays: orderDetails.validity,
       };
 
       const response = await fetch("/api/send-esim-email", {
@@ -434,9 +434,9 @@ export default function SuccessPage() {
                   <div className="bg-white/80 p-4 rounded-xl">
                     <p className="text-gray-600 text-sm mb-1">Validité</p>
                     <p className="font-semibold text-gray-800">
-                      {orderDetails.validity_days ||
+                      {orderDetails.validity ||
                         (orderDetails.airalo_packages &&
-                          orderDetails.airalo_packages.validity_days)}{" "}
+                          orderDetails.airalo_packages.validity)}{" "}
                       jours
                     </p>
                   </div>

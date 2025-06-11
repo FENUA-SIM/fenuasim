@@ -12,7 +12,7 @@ export interface AiraloPackage {
   type: string; // 'global', 'local'
   data_amount: number; // e.g., 1, 5, 10 - ensure type matches your data source
   data_unit: string; // e.g., 'GB', 'MB'
-  validity_days?: number; // e.g., 7, 30, 365
+  validity?: number; // e.g., 7, 30, 365
   includes_voice?: boolean;
   includes_sms?: boolean;
   available_topup?: boolean;
