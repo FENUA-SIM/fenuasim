@@ -271,7 +271,7 @@ export type Database = {
           slug?: string | null
           type?: string | null
           updated_at?: string | null
-          validity_days?: number | null
+          validity?: number | null
         }
         Relationships: []
       }
@@ -343,7 +343,7 @@ export type Database = {
           price: number | null
           provider_name: string | null
           updated_at: string | null
-          validity_days: number | null
+          validity: number | null
         }
         Insert: {
           country_code?: string | null
@@ -358,7 +358,7 @@ export type Database = {
           price?: number | null
           provider_name?: string | null
           updated_at?: string | null
-          validity_days?: number | null
+          validity?: number | null
         }
         Update: {
           country_code?: string | null
@@ -373,7 +373,7 @@ export type Database = {
           price?: number | null
           provider_name?: string | null
           updated_at?: string | null
-          validity_days?: number | null
+          validity?: number | null
         }
         Relationships: []
       }
@@ -488,7 +488,7 @@ export type Database = {
           short_description: string | null
           sku: string
           updated_at: string
-          validity_days: number
+          validity: number
         }
         Insert: {
           created_at?: string
@@ -501,7 +501,7 @@ export type Database = {
           short_description?: string | null
           sku: string
           updated_at?: string
-          validity_days: number
+          validity: number
         }
         Update: {
           created_at?: string
@@ -514,7 +514,7 @@ export type Database = {
           short_description?: string | null
           sku?: string
           updated_at?: string
-          validity_days?: number
+          validity?: number
         }
         Relationships: []
       }
@@ -530,7 +530,7 @@ export type Database = {
           name: string | null
           price: number | null
           provider_name: string | null
-          validity_days: number | null
+          validity: number | null
         }
         Insert: {
           country_code?: string | null
@@ -541,7 +541,7 @@ export type Database = {
           name?: string | null
           price?: number | null
           provider_name?: string | null
-          validity_days?: number | null
+          validity?: number | null
         }
         Update: {
           country_code?: string | null
@@ -552,7 +552,7 @@ export type Database = {
           name?: string | null
           price?: number | null
           provider_name?: string | null
-          validity_days?: number | null
+          validity?: number | null
         }
         Relationships: []
       }
