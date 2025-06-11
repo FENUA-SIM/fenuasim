@@ -32,7 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const tokenData = await tokenResponse.json();
-    const accessToken = tokenDat
+    const accessToken = tokenData.data.access_token;
+
     const orderBody = {
       package_id: airalo_id,
       quantity: quantity || 1,
