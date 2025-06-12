@@ -101,6 +101,13 @@ async function validateAndApplyPromoCode(code: string, packagePrice: number): Pr
   }
 }
 
+// Add this type for package-specific promo code state
+type PackagePromoState = {
+  code: string;
+  error: string | null;
+  discountedPrice: number | null;
+};
+
 const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
   const router = useRouter();
   const [originalPackageDetails, setOriginalPackageDetails] = useState<AiraloPackage | null>(null);
@@ -118,6 +125,9 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
   const [promoCodeError, setPromoCodeError] = useState<string | null>(null);
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
   const [appliedPromoCode, setAppliedPromoCode] = useState<PromoCode | null>(null);
+
+  // Replace the single promo code states with a map
+  const [packagePromoCodes, setPackagePromoCodes] = useState<Record<string, PackagePromoState>>({});
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -189,19 +199,29 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
     setShowRecapModal(true);
   };
 
-  const handlePromoCodeSubmit = async (e: React.FormEvent) => {
+  // Update the handlePromoCodeSubmit function
+  const handlePromoCodeSubmit = async (e: React.FormEvent, packageId: string) => {
     e.preventDefault();
-    if (!selectedTopUpPackage) return;
+    const pkg = topUpPackages.find(p => p.id === packageId);
+    if (!pkg) return;
 
-    const result = await validateAndApplyPromoCode(promoCode, selectedTopUpPackage.price);
+    const result = await validateAndApplyPromoCode(
+      packagePromoCodes[packageId]?.code || '',
+      pkg.price
+    );
+
+    setPackagePromoCodes(prev => ({
+      ...prev,
+      [packageId]: {
+        code: packagePromoCodes[packageId]?.code || '',
+        error: result.isValid ? null : (result.error || 'Code promo invalide'),
+        discountedPrice: result.isValid ? result.discountedPrice : null
+      }
+    }));
+
     if (result.isValid) {
-      setDiscountedPrice(result.discountedPrice);
-      setPromoCodeError(null);
-      // Store promo code in localStorage for use in checkout
-      localStorage.setItem('promoCode', promoCode);
+      localStorage.setItem('promoCode', packagePromoCodes[packageId]?.code || '');
     } else {
-      setPromoCodeError(result.error || 'Code promo invalide');
-      setDiscountedPrice(null);
       localStorage.removeItem('promoCode');
     }
   };
@@ -224,7 +244,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
     localStorage.setItem("customerEmail", form.email);
     localStorage.setItem("customerName", `${form.prenom} ${form.nom}`);
 
-    const cleanedPackagedId = selectedTopUpPackage.id.replace(/-topup$/, "");
+    const cleanedPackagedId = selectedTopUpPackage.id.split('-topup')[0];
     setShowRecapModal(false);
     try {
       const response = await fetch("/api/create-topup-checkout-session", {
@@ -236,7 +256,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
               id: cleanedPackagedId,
               name: selectedTopUpPackage.title,
               description: selectedTopUpPackage.shortInfo,
-              price: discountedPrice || selectedTopUpPackage.price,
+              price: packagePromoCodes[selectedTopUpPackage.id]?.discountedPrice || selectedTopUpPackage.price,
               currency: currency,
             },
           ],
@@ -246,6 +266,8 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
           promo_code: localStorage.getItem('promoCode'), // Add promo code to the request
         }),
       });
+      console.log("Cleaned Package Id: ", cleanedPackagedId)
+      console.log("Cleaned Package ICCID SIM: ", order.sim_iccid)
       const { sessionId, error: apiError } = await response.json();
       if (apiError) throw new Error(apiError);
       if (!sessionId) throw new Error("Session ID not received.");
@@ -379,11 +401,22 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                 </div>
                 <div className="flex flex-col items-center w-full">
                   <div className="w-full mb-4">
-                    <form onSubmit={handlePromoCodeSubmit} className="flex flex-col lg:flex-row gap-2 w-full">
+                    <form 
+                      onSubmit={(e) => handlePromoCodeSubmit(e, pkg.id)} 
+                      className="flex flex-col lg:flex-row gap-2 w-full"
+                    >
                       <input
                         type="text"
-                        value={promoCode}
-                        onChange={(e) => setPromoCode(e.target.value)}
+                        value={packagePromoCodes[pkg.id]?.code || ''}
+                        onChange={(e) => setPackagePromoCodes(prev => ({
+                          ...prev,
+                          [pkg.id]: {
+                            ...prev[pkg.id],
+                            code: e.target.value,
+                            error: null,
+                            discountedPrice: null
+                          }
+                        }))}
                         placeholder="Code promo"
                         className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-gray-800"
                       />
@@ -394,14 +427,12 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                         Appliquer
                       </button>
                     </form>
-                    {promoCodeError && (
-                      <p className="text-red-500 text-sm mt-1">{promoCodeError}</p>
+                    {packagePromoCodes[pkg.id]?.error && (
+                      <p className="text-red-500 text-sm mt-1">{packagePromoCodes[pkg.id].error}</p>
                     )}
-                    {discountedPrice && (
                       <p className="text-green-600 text-sm mt-1">
-                        Prix réduit: {discountedPrice.toFixed(2)} {currency}
+                        Prix réduit: {packagePromoCodes[pkg.id]?.discountedPrice}
                       </p>
-                    )}
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleAcheter(pkg); }}
