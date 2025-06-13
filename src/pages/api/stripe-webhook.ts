@@ -132,7 +132,7 @@ export default async function handler(
           package_name: packageData.name,
           data_amount: packageData.data_amount,
           data_unit: packageData.data_unit,
-          validity: packageData.validity,
+          validity: parseInt(packageData.validity.toString().charAt(0)),
           price: (session.amount_total ?? 0) / 100,
           currency:
             session.currency?.toUpperCase() ||

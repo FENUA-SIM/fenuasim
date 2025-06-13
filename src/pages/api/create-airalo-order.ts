@@ -38,7 +38,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       package_id: airalo_id,
       quantity: quantity || 1,
       type: 'sim',
-      customer_name: customerName,
       brand_settings_name: '',
       description: description
     };
