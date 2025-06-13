@@ -1,8 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
-import { supabase } from "@/lib/supabaseClient";
-import SibApiV3Sdk from "sib-api-v3-sdk";
-// Import will be handled separately since @/lib/airalo doesn't exist yet
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
