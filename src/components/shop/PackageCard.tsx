@@ -121,15 +121,11 @@ export default function PackageCard({
         {/* Header avec drapeau et nom */}
         <div className="flex items-center mb-3 sm:mb-4">
           <div className="relative w-8 h-6 sm:w-12 sm:h-8 mr-2 sm:mr-3 rounded overflow-hidden shadow-sm flex-shrink-0">
-            {countryCode && (
-              <Image
-                src={`https://flagcdn.com/w40/${countryCode}.png`}
+              <img
+                src={pkg.flag_url || ""}
                 alt={pkg.region_fr || ""}
-                fill
                 className="object-cover"
-                unoptimized
               />
-            )}
           </div>
           <div className="min-w-0 flex-1">
             <h3
@@ -158,7 +154,7 @@ export default function PackageCard({
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm text-gray-600">Jusqu'à</span>
             <span className="text-xs sm:text-sm font-medium text-gray-800">
-              {pkg.validity} days
+              {maxDays} days
             </span>
           </div>
 

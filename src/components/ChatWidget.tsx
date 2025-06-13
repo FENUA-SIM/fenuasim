@@ -46,15 +46,15 @@ export default function ChatWidget() {
           className="fixed bottom-4 right-4 z-50 bg-white rounded-full shadow-lg p-2 border border-gray-200 flex items-center justify-center w-16 h-16 sm:w-14 sm:h-14"
           aria-label="Ouvrir le chat Fenua SIM"
         >
-          <Image src="/logo-fenua-sim.png" alt="Fenua SIM" width={48} height={48} />
+          <Image src="/images/ai_assist.jpg" alt="Fenua SIM" width={48} height={48} />
         </button>
       )}
       {/* Fenêtre de chat */}
       {open && (
         <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md mx-auto bg-white rounded-t-xl shadow-2xl border border-gray-200 flex flex-col h-[60vh] sm:bottom-4 sm:right-4 sm:left-auto sm:w-full sm:max-w-sm sm:rounded-xl animate-fade-in">
           <div className="flex items-center justify-between p-2 border-b bg-fenua-coral rounded-t-xl">
-            <span className="text-white font-bold text-lg">Assistant eSIM</span>
-            <button onClick={() => setOpen(false)} className="text-white text-2xl px-2" aria-label="Fermer le chat">×</button>
+            <span className="ml-3 text-gray-400 font-bold text-lg">Assistant eSIM</span>
+            <button onClick={() => setOpen(false)} className="text-gray-600 text-2xl px-2" aria-label="Fermer le chat">×</button>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
             {messages.map((msg, i) => (
@@ -75,7 +75,7 @@ export default function ChatWidget() {
             />
             <button
               type="submit"
-              className="bg-fenua-coral text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50"
+              className="bg-fenua-coral bg-gray-600 text-white active:bg-slate-800 px-4 py-2 rounded-lg font-semibold disabled:opacity-50"
               disabled={loading || !input.trim()}
             >
               Envoyer
