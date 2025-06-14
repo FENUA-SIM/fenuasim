@@ -14,7 +14,7 @@ interface Order {
 }
 
 interface OrdersResponse {
-  orders: Order[];
+  data: Order[];
   total: number;
   page: number;
   per_page: number;
@@ -26,15 +26,16 @@ export const useOrders = () => {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
 
   const fetchOrders = useCallback(async (page = 1, perPage = 10) => {
-    const response = await fetchAPI<OrdersResponse>(`/v1/orders?page=${page}&per_page=${perPage}`);
+    const response = await fetchAPI<OrdersResponse>(`/orders?page=${page}&per_page=${perPage}`);
     if (response.data) {
-      setOrders(response.data.orders);
+      /* @ts-ignore */
+      setOrders(response.data);
     }
     return response;
   }, [fetchAPI]);
 
   const fetchOrderDetails = useCallback(async (orderId: string) => {
-    const response = await fetchAPI<Order>(`/v1/orders/${orderId}`);
+    const response = await fetchAPI<Order>(`/orders/${orderId}`);
     if (response.data) {
       setCurrentOrder(response.data);
     }
@@ -42,7 +43,7 @@ export const useOrders = () => {
   }, [fetchAPI]);
 
   const createTopUp = useCallback(async (simIccid: string, packageId: string) => {
-    const response = await fetchAPI<Order>('/v1/orders/top-up', {
+    const response = await fetchAPI<Order>('/orders/top-up', {
       method: 'POST',
       body: JSON.stringify({
         sim_iccid: simIccid,

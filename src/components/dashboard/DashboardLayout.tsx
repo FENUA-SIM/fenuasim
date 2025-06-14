@@ -11,7 +11,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Mes forfaits', icon: <Package className="w-5 h-5" />, href: '/dashboard' },
-  { label: 'Commandes', icon: <History className="w-5 h-5" />, href: '/dashboard/orders' },
   { label: 'Consommation', icon: <Activity className="w-5 h-5" />, href: '/dashboard/usage' },
   { label: 'Support', icon: <MessageSquare className="w-5 h-5" />, href: '/dashboard/support' },
 ];

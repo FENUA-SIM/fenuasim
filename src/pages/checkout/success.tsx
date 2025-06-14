@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "@/lib/supabaseClient";
+import { getAiraloToken } from "@/lib/airalo";
 import {
   User,
   UserPlus,
@@ -10,6 +11,7 @@ import {
   Mail,
   Smartphone,
 } from "lucide-react";
+
 
 export default function SuccessPage() {
   const router = useRouter();
@@ -24,6 +26,38 @@ export default function SuccessPage() {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [showAccountCTA, setShowAccountCTA] = useState(false);
   const [packageData, setPackageData] = useState<any>(null);
+  const [sharingLink, setSharingLink] = useState();
+  const [sharingLinkCode, setSharingLinkCode] = useState();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getData = async (iccid: string) => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const response = await fetch(`/api/getEsimData?iccid=${iccid}`);
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to fetch eSIM data');
+        }
+
+        setSharingLink(result.data.sharing.link);
+        setSharingLinkCode(result.data.sharing.access_code);
+      } catch (error) {
+        console.error('Error fetching eSIM data:', error);
+        setError('Failed to load sharing information. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (orderDetails?.esim?.sim_iccid) {
+      getData(orderDetails.esim.sim_iccid);
+    }
+  }, [orderDetails]);
 
   useEffect(() => {
     const checkUserStatus = async () => {
@@ -317,6 +351,44 @@ export default function SuccessPage() {
               </div>
             )}
           </div>
+
+          {isLoading && (
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Loading sharing information...</p>
+            </div>
+          )}
+          
+          {error && (
+            <div className="text-red-600 bg-red-50 p-4 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {!isLoading && !error && sharingLink && (
+            <div className="flex flex-col items-center bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Manage Your eSIM
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Click on this link to track your data consumption, find your QR Code at any time and manage your eSIM.
+              </p>
+              <div className="bg-gray-50 p-3 rounded-lg mb-3 break-all">
+                <a 
+                  href={sharingLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  {sharingLink}
+                </a>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <span className="font-medium">Access Code:</span>
+                <code className="bg-gray-100 px-2 py-1 rounded">{sharingLinkCode}</code>
+              </div>
+            </div>
+          )}
 
           {orderDetails && (
             <div className="space-y-8">

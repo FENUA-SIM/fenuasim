@@ -23,40 +23,36 @@ export const useAiraloAPI = () => {
     setError(null);
 
     try {
-      // Récupérer la session Supabase
+      // Verify Supabase session
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        throw new Error('Non authentifié');
+        throw new Error('Unauthorized');
       }
 
-      // Récupérer les clés API depuis les variables d'environnement
-      const AIRALO_API_KEY = process.env.NEXT_PUBLIC_AIRALO_API_KEY;
-      const AIRALO_API_URL = process.env.NEXT_PUBLIC_AIRALO_API_URL;
-
-      if (!AIRALO_API_KEY || !AIRALO_API_URL) {
-        throw new Error('Configuration API manquante');
-      }
-
-      const response = await fetch(`${AIRALO_API_URL}${endpoint}`, {
-        ...options,
+      // Call our server API endpoint
+      const response = await fetch('/api/airalo', {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${AIRALO_API_KEY}`,
           'Content-Type': 'application/json',
-          ...options.headers,
         },
+        body: JSON.stringify({
+          endpoint,
+          method: options.method || 'GET',
+          body: options.body,
+        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur API Airalo');
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'API request failed');
       }
 
-      const data = await response.json();
-      return { data, error: null };
+      return { data: result.data.data, error: null };
     } catch (err) {
       const apiError: AiraloAPIError = {
         code: 'API_ERROR',
-        message: err instanceof Error ? err.message : 'Erreur inconnue',
+        message: err instanceof Error ? err.message : 'Unknown error',
       };
       setError(apiError);
       return { data: null, error: apiError };
