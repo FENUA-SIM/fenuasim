@@ -7,8 +7,8 @@ import type { Database } from "@/lib/supabase/config";
 import ChatWidget from "@/components/ChatWidget";
 
 const TOP_DESTINATIONS = [
-  "France",
-  "Canada",
+  "Europe",
+  "Japon",
   "United States",
   "Australia",
   "New Zealand",
