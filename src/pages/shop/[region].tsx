@@ -640,7 +640,7 @@ export default function RegionPage() {
       {selectedPackage &&
       typeof selectedPackage.data_amount === "number" &&
       selectedPackage.data_unit ? (
-        <section className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
+        <section className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 text-gray-700">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center sm:text-left">
             Que faire avec {selectedPackage.data_amount}{" "}
             {selectedPackage.data_unit?.toLowerCase() === "gb"
@@ -723,7 +723,7 @@ export default function RegionPage() {
       ) : null}
 
       {/* Bloc 4 : Comment activer ma eSIM ? */}
-      <section className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
+      <section className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 text-gray-800">
         <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center sm:text-left">
           Comment activer ma eSIM ?
         </h2>
