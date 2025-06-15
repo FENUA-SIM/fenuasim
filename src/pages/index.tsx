@@ -15,6 +15,8 @@ const TOP_DESTINATIONS = [
   "New Zealand",
   "Mexico",
   "France",
+  "Asia",
+  "Discover Global",
 ];
 
 type Package = Database["public"]["Tables"]["airalo_packages"]["Row"];
