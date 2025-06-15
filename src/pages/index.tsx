@@ -8,9 +8,10 @@ import ChatWidget from "@/components/ChatWidget";
 
 const TOP_DESTINATIONS = [
   "Europe",
-  "Japon",
-  "United States",
+  "Japan",
   "Australia",
+  "United States",
+  "Fiji",
   "New Zealand",
 ];
 
