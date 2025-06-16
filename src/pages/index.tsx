@@ -7,11 +7,16 @@ import type { Database } from "@/lib/supabase/config";
 import ChatWidget from "@/components/ChatWidget";
 
 const TOP_DESTINATIONS = [
-  "France",
-  "Canada",
-  "United States",
+  "Europe",
+  "Japan",
   "Australia",
+  "United States",
+  "Fiji",
   "New Zealand",
+  "Mexico",
+  "France",
+  "Asia",
+  "Discover Global",
 ];
 
 type Package = Database["public"]["Tables"]["airalo_packages"]["Row"];
