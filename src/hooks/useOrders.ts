@@ -1,13 +1,16 @@
 import { useState, useCallback } from 'react';
 import { useAiraloAPI } from './useAiraloAPI';
 
+interface Status{
+  name: string;
+  slug: string;
+}
 interface Order {
   id: string;
-  status: string;
+  status: Status;
   created_at: string;
-  package_name: string;
-  data_amount: number;
-  data_unit: string;
+  package: string;
+  data: number;
   price: number;
   currency: string;
   sim_iccid?: string;
@@ -26,7 +29,7 @@ export const useOrders = () => {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
 
   const fetchOrders = useCallback(async (page = 1, perPage = 10) => {
-    const response = await fetchAPI<OrdersResponse>(`/orders?page=${page}&per_page=${perPage}`);
+    const response = await fetchAPI<OrdersResponse>(`/orders?include=status&page=${page}&per_page=${perPage}`);
     if (response.data) {
       /* @ts-ignore */
       setOrders(response.data);

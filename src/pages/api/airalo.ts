@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '@/lib/supabaseClient';
 import { getAiraloToken } from "@/lib/airalo";
 
 export default async function handler(

@@ -148,6 +148,8 @@ export default function SuccessPage() {
         dataUnit: orderDetails.data_unit || "GB",
         validityDays: orderDetails.validity,
         qrCodeUrl: orderDetails.esim.qr_code_url,
+        sharingLink: sharingLink,
+        sharingLinkCode: sharingLinkCode
       };
 
       const response = await fetch("/api/send-esim-email", {
@@ -176,7 +178,8 @@ export default function SuccessPage() {
     if (
       orderStatus === "success" &&
       orderDetails?.esim?.qr_code_url &&
-      emailStatus === "pending"
+      emailStatus === "pending" &&
+      sharingLink && sharingLinkCode
     ) {
       const timer = setTimeout(() => {
         sendEmail();
@@ -184,7 +187,7 @@ export default function SuccessPage() {
 
       return () => clearTimeout(timer);
     }
-  }, [orderStatus, orderDetails, emailStatus]);
+  }, [orderStatus, orderDetails, emailStatus, sharingLink, sharingLinkCode]);
 
   const resendEmail = async () => {
     setEmailStatus("pending");
@@ -368,10 +371,10 @@ export default function SuccessPage() {
           {!isLoading && !error && sharingLink && (
             <div className="flex flex-col items-center bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Manage Your eSIM
+              Gérer votre eSIM
               </h3>
               <p className="text-gray-600 mb-4">
-                Click on this link to track your data consumption, find your QR Code at any time and manage your eSIM.
+              Cliquez sur ce lien pour suivre votre consommation de données, retrouver votre QR Code à tout moment et gérer votre eSIM.
               </p>
               <div className="bg-gray-50 p-3 rounded-lg mb-3 break-all">
                 <a 
@@ -384,7 +387,7 @@ export default function SuccessPage() {
                 </a>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span className="font-medium">Access Code:</span>
+                <span className="font-medium">Code d'accès:</span>
                 <code className="bg-gray-100 px-2 py-1 rounded">{sharingLinkCode}</code>
               </div>
             </div>
@@ -507,15 +510,7 @@ export default function SuccessPage() {
                         "GB"}
                     </p>
                   </div>
-                  <div className="bg-white/80 p-4 rounded-xl">
-                    <p className="text-gray-600 text-sm mb-1">Validité</p>
-                    <p className="font-semibold text-gray-800">
-                      {orderDetails.validity ||
-                        (orderDetails.airalo_packages &&
-                          orderDetails.airalo_packages.validity)}{" "}
-                      jours
-                    </p>
-                  </div>
+                  
                   <div className="bg-white/80 p-4 rounded-xl">
                     <p className="text-gray-600 text-sm mb-1">Email</p>
                     <p className="font-semibold text-gray-800">

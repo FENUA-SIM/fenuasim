@@ -27,7 +27,7 @@ export const useSims = () => {
       const { data, error: fetchError } = await supabase
         .from('user_sims')
         .select('*')
-        .eq('user_id', session.user.id)
+        .eq('user_email', session.user.email)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;

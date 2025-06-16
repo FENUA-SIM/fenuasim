@@ -20,6 +20,8 @@ export default async function handler(
       dataUnit,
       validityDays,
       qrCodeUrl,
+      sharingLink,
+      sharingLinkCode
     } = req.body;
 
     // Validate required fields
@@ -53,6 +55,8 @@ export default async function handler(
       dataUnit: dataUnit || "GB",
       validityDays: validityDays || 30,
       qrCodeUrl,
+      sharingLink,
+      sharingLinkCode
     });
 
     // Email options

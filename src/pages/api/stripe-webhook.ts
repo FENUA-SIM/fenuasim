@@ -270,6 +270,26 @@ export default async function handler(
           );
         }
         console.log("New order saved to database successfully.");
+
+        const { data: userEsims, error: userEsimsError } = await supabase
+        .from('user_sims')
+        .insert([
+          { user_email: customerEmail,
+            iccid: airaloOrderData.iccid,
+            name: packageData.name,
+            status: 'completed', 
+          },
+        ])
+        .select()
+        if(userEsimsError){
+          console.error(
+            `Failed to save user esim to database: ${userEsimsError.message}`
+          );
+          throw new Error(
+            `Failed to save user esim to database: ${userEsimsError.message}`
+          );
+        }
+        console.log("User Esims: ", userEsims)
       }
 
       if (promo_code) {

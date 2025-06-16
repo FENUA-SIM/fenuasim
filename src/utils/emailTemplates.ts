@@ -6,6 +6,8 @@ export function createEsimEmailHTML({
   dataUnit,
   validityDays,
   qrCodeUrl,
+  sharingLink,
+  sharingLinkCode
 }: {
   customerName: string;
   packageName: string;
@@ -14,6 +16,8 @@ export function createEsimEmailHTML({
   dataUnit: string;
   validityDays: number;
   qrCodeUrl: string;
+  sharingLink: string;
+  sharingLinkCode: string;
 }) {
   return `
     <!DOCTYPE html>
@@ -54,9 +58,21 @@ export function createEsimEmailHTML({
               <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">📊 Données:</td>
               <td style="padding: 8px 0; color: #111827;">${dataAmount} ${dataUnit}</td>
             </tr>
+          </table>
+        </div>
+
+        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #10b981;">
+          <h2 style="font-size: 20px; margin: 0 0 15px 0; color: #374151;">
+            📋 Gérer votre eSIM
+          </h2>
+          <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
             <tr>
-              <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">⏰ Validité:</td>
-              <td style="padding: 8px 0; color: #111827;">${validityDays} jours</td>
+              <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">🎯 Lien vers le cloud:</td>
+              <td style="padding: 8px 0; color: #111827;">${sharingLink}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">📦 Code d'accès:</td>
+              <td style="padding: 8px 0; color: #111827;">${sharingLinkCode}</td>
             </tr>
           </table>
         </div>

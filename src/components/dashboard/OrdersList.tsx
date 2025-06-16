@@ -67,20 +67,20 @@ export default function OrdersList() {
                     {format(new Date(order.created_at), 'dd MMMM yyyy', { locale: fr })}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{order.package_name}</div>
+                    <div className="text-sm font-medium text-gray-900">{order.package}</div>
                     <div className="text-sm text-gray-500">
-                      {order.data_amount} {order.data_unit === 'GB' ? 'Go' : order.data_unit}
+                      {order.data.toString().slice(0, -2)} Go
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      order.status.slug === 'completed' ? 'bg-green-100 text-green-800' :
+                      order.status.slug === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {order.status === 'completed' ? 'Terminée' :
-                       order.status === 'pending' ? 'En cours' :
-                       order.status}
+                      {order.status.slug === 'completed' ? 'Terminée' :
+                       order.status.slug === 'pending' ? 'En cours' :
+                       order.status.slug}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
