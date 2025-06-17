@@ -33,7 +33,7 @@ export default function SupportForm() {
         .from('support_tickets')
         .insert([
           {
-            user_id: session.user.id,
+            user_email: session.user.email,
             subject: formData.subject,
             message: formData.message,
             priority: formData.priority,
@@ -60,7 +60,7 @@ export default function SupportForm() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="flex flex-col h-screen max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Contactez le support</h2>
 
       {success && (
@@ -87,7 +87,7 @@ export default function SupportForm() {
             value={formData.subject}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-gray-700"
             placeholder="Sujet de votre demande"
           />
         </div>
@@ -101,7 +101,7 @@ export default function SupportForm() {
             name="priority"
             value={formData.priority}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-gray-700"
           >
             <option value="low">Basse</option>
             <option value="medium">Moyenne</option>
@@ -120,7 +120,7 @@ export default function SupportForm() {
             onChange={handleChange}
             required
             rows={6}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-gray-700"
             placeholder="Décrivez votre problème en détail..."
           />
         </div>

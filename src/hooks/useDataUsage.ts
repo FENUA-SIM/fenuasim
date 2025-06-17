@@ -2,10 +2,8 @@ import { useState, useCallback } from 'react';
 import { useAiraloAPI } from './useAiraloAPI';
 
 interface DataUsage {
-  sim_iccid: string;
-  data_used: number;
-  data_unit: string;
-  last_updated: string;
+  remaining: number;
+  total: number;
   status: string;
 }
 
@@ -14,7 +12,7 @@ export const useDataUsage = () => {
   const [usage, setUsage] = useState<DataUsage | null>(null);
 
   const fetchUsage = useCallback(async (simIccid: string) => {
-    const response = await fetchAPI<DataUsage>(`/v1/sims/${simIccid}/usage`);
+    const response = await fetchAPI<DataUsage>(`/sims/${simIccid}/usage`);
     if (response.data) {
       setUsage(response.data);
     }
@@ -23,9 +21,16 @@ export const useDataUsage = () => {
 
   const formatDataUsage = useCallback((usage: DataUsage | null) => {
     if (!usage) return 'N/A';
-    const used = usage.data_used.toFixed(2);
-    const unit = usage.data_unit === 'GB' ? 'Go' : usage.data_unit;
+    const used = usage.total - usage.remaining;
+    const unit = 'Mbs';
     return `${used} ${unit}`;
+  }, []);
+
+  const formatRemainingData = useCallback((usage: DataUsage | null) => {
+    if (!usage) return 'N/A';
+    const remaining = usage.remaining;
+    const unit = 'Mbs';
+    return `${remaining} ${unit}`;
   }, []);
 
   return {
@@ -34,5 +39,6 @@ export const useDataUsage = () => {
     error,
     fetchUsage,
     formatDataUsage,
+    formatRemainingData,
   };
 }; 

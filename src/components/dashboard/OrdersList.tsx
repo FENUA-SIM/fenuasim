@@ -13,7 +13,7 @@ export default function OrdersList() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -21,7 +21,7 @@ export default function OrdersList() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
+      <div className="flex flex-col h-screen bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
         <p>Une erreur est survenue lors du chargement des commandes.</p>
         <p className="text-sm mt-2">{error.message}</p>
       </div>
@@ -30,7 +30,7 @@ export default function OrdersList() {
 
   if (!orders.length) {
     return (
-      <div className="text-center py-12">
+      <div className="flex flex-col h-screen text-center py-12">
         <h3 className="text-lg font-medium text-gray-900">Aucune commande</h3>
         <p className="mt-2 text-gray-500">Vous n'avez pas encore passé de commande.</p>
       </div>
