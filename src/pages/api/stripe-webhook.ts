@@ -192,6 +192,7 @@ export default async function handler(
         console.log(
           "Top-up details saved to 'airalo_topups' database successfully."
         );
+        
       } else {
         console.log(
           `Processing new order for package ID: ${packageId}, session: ${session.id}`

@@ -1,4 +1,3 @@
-import { AIRALO_API_URL } from '@/lib/airalo/config';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from "@/lib/supabaseClient";
 
@@ -11,7 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { packageId, customerEmail, airalo_id, customerName, customerFirstname, quantity, description } = req.body;
 
 
-    // 1. Get Access Token from Airalo
     const AIRALO_API_URL = process.env.AIRALO_API_URL;
     const tokenResponse = await fetch(`${AIRALO_API_URL}/token`, {
       method: 'POST',
