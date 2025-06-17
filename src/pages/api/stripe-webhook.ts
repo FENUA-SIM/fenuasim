@@ -275,7 +275,7 @@ export default async function handler(
         .from('user_sims')
         .insert([
           { user_email: customerEmail,
-            iccid: airaloOrderData.iccid,
+            iccid: airaloOrderData.sim_iccid,
             name: packageData.name,
             status: 'completed', 
           },
