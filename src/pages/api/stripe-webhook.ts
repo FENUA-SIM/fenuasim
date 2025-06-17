@@ -240,7 +240,7 @@ export default async function handler(
             airaloOrderData.order_reference ||
             airaloOrderData.id ||
             `new_order_${session.id}`,
-          esim_iccid: airaloOrderData.iccid,
+          esim_iccid: airaloOrderData.sim_iccid,
           qr_code_url: airaloOrderData.qr_code,
           status: "completed",
           amount: session.amount_total,
@@ -280,7 +280,8 @@ export default async function handler(
             status: 'completed', 
           },
         ])
-        .select()
+        .select();
+
         if(userEsimsError){
           console.error(
             `Failed to save user esim to database: ${userEsimsError.message}`
