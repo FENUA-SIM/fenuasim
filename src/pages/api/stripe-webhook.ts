@@ -271,11 +271,12 @@ export default async function handler(
         }
         console.log("New order saved to database successfully.");
 
+        console.log(airaloOrderData)
         const { data: userEsims, error: userEsimsError } = await supabase
         .from('user_sims')
         .insert([
           { user_email: customerEmail,
-            iccid: airaloOrderData.sim_iccid,
+            iccid: airaloOrderData.order.sim_iccid,
             name: packageData.name,
             status: 'completed', 
           },
