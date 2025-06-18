@@ -63,11 +63,11 @@ export function createEsimEmailHTML({
 
         <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #10b981;">
           <h2 style="font-size: 20px; margin: 0 0 15px 0; color: #374151;">
-            📋 Gérer votre eSIM
+            📋 Activer votre eSIM
           </h2>
           <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
             <tr>
-              <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">🎯 Lien vers le cloud:</td>
+              <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">🎯 lien d’activation:</td>
               <td style="padding: 8px 0; color: #111827;">${sharingLink}</td>
             </tr>
             <tr>
