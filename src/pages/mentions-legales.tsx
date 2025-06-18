@@ -11,7 +11,6 @@ export default function MentionsLegales() {
             <li>Propriétaire / Responsable de publication : FENUA SIM SASU</li>
             <li>Adresse : 58 rue Monceau 75008</li>
             <li>Email : contact@fenuasim.com</li>
-            <li>Numéro de téléphone : +33 7 56 86 06 01</li>
             <li>Statut juridique : [SASU]</li>
             <li>SIRET : [943 713 875]</li>
           </ul>
