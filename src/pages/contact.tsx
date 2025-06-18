@@ -5,7 +5,7 @@ export default function Contact() {
       
       <div className="bg-white rounded-xl shadow p-6 space-y-6 border border-purple-100 text-gray-800">
         <div className="space-y-1">
-          <p className="font-semibold">📞 Téléphone :</p>
+          <p className="font-semibold">📞 Whatsapp :</p>
           <p>
             <a href="tel:+33756860601" className="text-purple-600 hover:underline">
               +33 7 56 86 06 01
