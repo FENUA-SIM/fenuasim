@@ -10,6 +10,7 @@ const TERMINAUX_ESIM = [
   {
     brand: 'Apple',
     models: [
+      'iPhone 16/ 16 pro / 16e',
       'iPhone 15 / 15 Plus / 15 Pro / 15 Pro Max',
       'iPhone 14 / 14 Plus / 14 Pro / 14 Pro Max',
       'iPhone 13 / 13 mini / 13 Pro / 13 Pro Max',
@@ -88,7 +89,7 @@ export default function Compatibilite() {
     <div className="max-w-2xl mx-auto py-16 px-4 text-center">
       <h1 className="text-3xl font-bold mb-6">Compatibilité eSIM</h1>
       <p className="mb-6 text-lg text-gray-700">
-        Voici une liste récente de terminaux compatibles eSIM (non exhaustive, à vérifier selon les opérateurs) :
+        Voici une liste récente de terminaux compatibles* eSIM (non exhaustive, à vérifier selon les opérateurs) :
       </p>
       <div className="bg-white rounded-xl shadow p-6 border border-purple-100 text-left">
         {TERMINAUX_ESIM.map(({ brand, models }) => (
