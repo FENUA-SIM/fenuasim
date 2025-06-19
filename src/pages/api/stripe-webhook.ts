@@ -309,7 +309,6 @@ export default async function handler(
             .update({ times_used: timesUsed })
             .eq("code", promoCodeData.code);
 
-          // Record usage
           await supabase.from("promo_code_usage").insert({
             promo_code_id: promoCodeData.id,
             order_id: session.id,
