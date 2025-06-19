@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { AiraloTopup } from "@/types/airaloTopup";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-03-31.basil",
+  apiVersion: "2025-04-30.basil",
 });
 
 export const config = { api: { bodyParser: false } };
