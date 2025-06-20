@@ -36,7 +36,7 @@ export default function FilterBar({ onSearch, onFilterChange }: FilterBarProps) 
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-fenua-purple" />
           <input
             type="text"
-            placeholder="Rechercher une destination..."
+            placeholder="Rechercher un pays..."
             value={searchQuery}
             onChange={handleSearch}
             className="w-full pl-10 pr-4 py-2 border-2 border-fenua-purple rounded-lg focus:outline-none focus:ring-2 focus:ring-fenua-coral"
