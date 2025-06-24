@@ -27,7 +27,7 @@ interface DestinationCardProps {
 const TOP_DESTINATIONS = [
   "France",
   "Canada",
-  "Etats-unis",
+  "États-Unis",
   "Australie",
   "Nouvelle Zélande",
 ];
