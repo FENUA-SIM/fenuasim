@@ -10,7 +10,7 @@ const TOP_DESTINATIONS = [
   "Europe",
   "Japon",
   "Australie",
-  "Etats-unis",
+  "États-Unis",
   "Fidji",
   "Nouvelle Zélande",
   "Mexique",
