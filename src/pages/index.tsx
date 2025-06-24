@@ -8,15 +8,15 @@ import ChatWidget from "@/components/ChatWidget";
 
 const TOP_DESTINATIONS = [
   "Europe",
-  "Japon",
-  "Australie",
-  "États-Unis",
-  "Fidji",
-  "Nouvelle Zélande",
-  "Mexique",
+  "Japan",
+  "Australia",
+  "United States",
+  "Fiji",
+  "New Zealand",
+  "Mexico",
   "France",
-  "Asie",
-  "Monde",
+  "Asia",
+  "Discover Global",
 ];
 
 type Package = Database["public"]["Tables"]["airalo_packages"]["Row"];
