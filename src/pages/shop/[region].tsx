@@ -316,6 +316,7 @@ export default function RegionPage() {
 
     // Validate promo code if provided
     let finalPrice = selectedPackage.final_price_eur;
+    let promoCodeToSave = null;
     if (form.codePromo) {
       const promoResult = await validateAndApplyPromoCode(
         form.codePromo,
@@ -327,6 +328,7 @@ export default function RegionPage() {
         return;
       }
       finalPrice = promoResult.discountedPrice;
+      promoCodeToSave = form.codePromo;
     }
 
     // Store customer info in localStorage
@@ -336,6 +338,9 @@ export default function RegionPage() {
     localStorage.setItem("customerName", `${form.prenom} ${form.nom}`);
     if (form.codePromo) {
       localStorage.setItem("promoCode", form.codePromo);
+    }
+    if (form.codePartenaire) {
+      localStorage.setItem("partnerCode", form.codePartenaire);
     }
 
     setShowRecapModal(false);
@@ -350,7 +355,8 @@ export default function RegionPage() {
               name: selectedPackage.name,
               description: selectedPackage.description ?? "",
               final_price_eur: finalPrice,
-              promo_code: form.codePromo || undefined,
+              promo_code: promoCodeToSave || undefined,
+              partner_code: form.codePartenaire || undefined,
             },
           ],
           customer_email: form.email,

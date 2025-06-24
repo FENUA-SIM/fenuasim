@@ -119,7 +119,13 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
   const [currentIndex, setCurrentIndex] = useState(0); // For carousel
 
   const [showRecapModal, setShowRecapModal] = useState(false);
-  const [form, setForm] = useState({ nom: "", prenom: "", email: "" });
+  const [form, setForm] = useState({
+    nom: "",
+    prenom: "",
+    email: "",
+    codePromo: "",
+    codePartenaire: "",
+  });
   const [formError, setFormError] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState("");
   const [promoCodeError, setPromoCodeError] = useState<string | null>(null);
@@ -238,13 +244,34 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
     }
     setFormError(null);
 
+    // Validate promo code if provided
+    let finalPrice = selectedTopUpPackage.price;
+    let promoCodeToSave = null;
+    if (form.codePromo) {
+      const promoResult = await validateAndApplyPromoCode(
+        form.codePromo,
+        finalPrice
+      );
+      if (!promoResult.isValid) {
+        setFormError(promoResult.error || "Code promo invalide");
+        return;
+      }
+      finalPrice = promoResult.discountedPrice;
+      promoCodeToSave = form.codePromo;
+    }
+
     // Store customer info in localStorage
     localStorage.setItem("packageId", selectedTopUpPackage.id);
     localStorage.setItem("customerId", form.email);
     localStorage.setItem("customerEmail", form.email);
     localStorage.setItem("customerName", `${form.prenom} ${form.nom}`);
+    if (form.codePromo) {
+      localStorage.setItem("promoCode", form.codePromo);
+    }
+    if (form.codePartenaire) {
+      localStorage.setItem("partnerCode", form.codePartenaire);
+    }
 
-    const cleanedPackagedId = selectedTopUpPackage.id.split('-topup')[0];
     setShowRecapModal(false);
     try {
       const response = await fetch("/api/create-topup-checkout-session", {
@@ -253,33 +280,30 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
         body: JSON.stringify({
           cartItems: [
             {
-              id: cleanedPackagedId,
-              name: selectedTopUpPackage.title,
-              description: selectedTopUpPackage.shortInfo,
-              price: packagePromoCodes[selectedTopUpPackage.id]?.discountedPrice || selectedTopUpPackage.price,
-              currency: currency,
+              id: selectedTopUpPackage.id,
+              name: selectedTopUpPackage.name,
+              description: selectedTopUpPackage.description ?? "",
+              price: finalPrice,
+              currency: "EUR",
             },
           ],
           customer_email: form.email,
           is_top_up: true,
           sim_iccid: order.sim_iccid,
-          promo_code: localStorage.getItem('promoCode'), // Add promo code to the request
+          promo_code: promoCodeToSave || undefined,
+          partner_code: form.codePartenaire || undefined,
         }),
       });
-      console.log("Cleaned Package Id: ", cleanedPackagedId)
-      console.log("Cleaned Package ICCID SIM: ", order.sim_iccid)
-      const { sessionId, error: apiError } = await response.json();
-      if (apiError) throw new Error(apiError);
-      if (!sessionId) throw new Error("Session ID not received.");
-      
+
+      const { sessionId } = await response.json();
       const stripe = await stripePromise;
       if (!stripe) throw new Error("Stripe non initialisé");
       const { error } = await stripe.redirectToCheckout({ sessionId });
       if (error) throw error;
-    } catch (err: any) {
+    } catch (err) {
       console.error("Erreur lors de la redirection Stripe:", err);
       setFormError(
-        err.message || "Une erreur est survenue lors de la redirection vers le paiement. Veuillez réessayer."
+        "Une erreur est survenue lors de la redirection vers le paiement. Veuillez réessayer."
       );
     }
   }
@@ -491,6 +515,40 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input type="email" name="email" id="email" value={form.email} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-800"/>
+              </div>
+              <div>
+                <label htmlFor="codePromo" className="block text-sm font-medium text-gray-700 mb-1">Code promo</label>
+                <input
+                  type="text"
+                  name="codePromo"
+                  placeholder="Code promo (optionnel)"
+                  value={form.codePromo}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500 text-base"
+                  style={
+                    {
+                      WebkitTextFillColor: "#111827",
+                      color: "#111827",
+                    } as React.CSSProperties
+                  }
+                />
+              </div>
+              <div>
+                <label htmlFor="codePartenaire" className="block text-sm font-medium text-gray-700 mb-1">Code partenaire</label>
+                <input
+                  type="text"
+                  name="codePartenaire"
+                  placeholder="Code partenaire (optionnel)"
+                  value={form.codePartenaire}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500 text-base"
+                  style={
+                    {
+                      WebkitTextFillColor: "#111827",
+                      color: "#111827",
+                    } as React.CSSProperties
+                  }
+                />
               </div>
               <div className="pt-4">
                 <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold py-3 px-4 rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300">

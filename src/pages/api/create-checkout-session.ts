@@ -44,6 +44,7 @@ export default async function handler(
         // Store cart items as JSON string to access in webhook
         cartItems: JSON.stringify(cartItems),
         promo_code: cartItems[0].promo_code || '',
+        partner_code: cartItems[0].partner_code || '',
       },
     })
 

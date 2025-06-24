@@ -518,6 +518,52 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          id: string
+          stripe_session_id: string
+          package_id: string
+          email: string
+          airalo_order_id: string | null
+          status: string
+          amount: number
+          created_at: string
+          promo_code: string | null
+          partner_code: string | null
+        }
+        Insert: {
+          id?: string
+          stripe_session_id: string
+          package_id: string
+          email: string
+          airalo_order_id?: string | null
+          status: string
+          amount: number
+          created_at?: string
+          promo_code?: string | null
+          partner_code?: string | null
+        }
+        Update: {
+          id?: string
+          stripe_session_id?: string
+          package_id?: string
+          email?: string
+          airalo_order_id?: string | null
+          status?: string
+          amount?: number
+          created_at?: string
+          promo_code?: string | null
+          partner_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_package_id_fkey"
+            columns: ["package_id"]
+            referencedRelation: "airalo_packages"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       public_airalo_packages: {

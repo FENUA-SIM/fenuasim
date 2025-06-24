@@ -14,7 +14,7 @@ export default async function handler(
   }
 
   try {
-    const { cartItems, customer_email, is_top_up, sim_iccid, promo_code } = req.body;
+    const { cartItems, customer_email, is_top_up, sim_iccid, promo_code, partner_code } = req.body;
 
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
       return res.status(400).json({ error: { message: 'Invalid cart items' } });
@@ -41,6 +41,7 @@ export default async function handler(
       packageId: cartItems[0].id,
       cartItems: JSON.stringify(cartItems),
       promo_code: promo_code || '',
+      partner_code: partner_code || '',
     };
 
     if (is_top_up) {

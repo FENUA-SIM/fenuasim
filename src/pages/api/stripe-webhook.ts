@@ -51,7 +51,7 @@ export default async function handler(
     }
 
     try {
-      const { packageId, is_top_up, sim_iccid, promo_code } =
+      const { packageId, is_top_up, sim_iccid, promo_code, partner_code } =
         session.metadata || {};
       console.log("Package ID:", packageId);
       if (!packageId) {
@@ -141,6 +141,8 @@ export default async function handler(
           transaction_type: "topup",
           nom: session.customer_details?.name || null,
           prenom: session.customer_details?.name?.split(" ")[0] || null,
+          promo_code: promo_code || null,
+          partner_code: partner_code || null,
         };
 
         const { data: newOrderData, error: orderError } = await supabase
@@ -256,6 +258,8 @@ export default async function handler(
             packageData.currency?.toUpperCase() ||
             "EUR",
           transaction_type: "new_order",
+          promo_code: promo_code || null,
+          partner_code: partner_code || null,
         };
 
         const { error: orderError } = await supabase
