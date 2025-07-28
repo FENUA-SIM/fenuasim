@@ -231,11 +231,9 @@ export default function Compatibilite() {
           rel="noopener noreferrer"
           className="inline-block bg-purple-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-purple-700 transition mb-4"
         >
- 
-
-      <div className="mt-8">
-        <a href="https://www.airalo.com/help/fr/a-propos-dairalo/NFHQSUXFCZOM/quels-sont-les-appareils-compatibles/D2N6OZSVVM9W?srsltid=AfmBOooqcXE3J-YBy6XInyPUDhOzbKGVQetRsP7CzdoklUSPRNTamkV0" target="_blank" rel="noopener noreferrer" className="inline-block bg-purple-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-purple-700 transition mb-4">Voir la liste complète</a>
+          Voir la liste complète
+        </a>
       </div>
     </div>
-  )
-} 
+  );
+}
