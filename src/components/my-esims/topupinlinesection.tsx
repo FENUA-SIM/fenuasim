@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"; // Or 'next/router' for Pages Route
 import { supabase } from "@/lib/supabase";
 import { getAiraloToken } from "@/lib/airalo";
 import { AiraloOrder } from "@/types/airaloOrder"; // Adjust path if necessary
-import { AiraloPackage } from "@/types/airaloPackage"; // Ensure this path is correct
 import { loadStripe } from "@stripe/stripe-js";
 import { ChevronLeft, ChevronRight, ShoppingCart, User } from "lucide-react";
 
@@ -106,6 +105,25 @@ type PackagePromoState = {
   code: string;
   error: string | null;
   discountedPrice: number | null;
+};
+
+export type AiraloPackage = {
+  id: string;
+  name: string;
+  title?: string | null;
+  description?: string | null;
+  data?: string | null;
+  amount?: number | null;
+  data_unit?: string | null;
+  day: number;
+  price: number;
+  net_price?: number | null;
+  is_unlimited?: boolean;
+  type?: string | null;
+  voice?: string | number | null;
+  text?: string | number | null;
+  short_info?: string | null;
+  region_fr?: string | null;
 };
 
 const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
@@ -388,36 +406,36 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                 onClick={() => setSelectedTopUpPackage(pkg)}
               >
                 <div className="flex items-center gap-2 mb-2 self-start">
-                  {/* {pkg.region_image_url ? (
-                    <Image
-                      src={pkg.region_image_url}
-                      alt={pkg.region_fr || ""}
-                      width={32}
-                      height={20}
-                      className="rounded object-cover border"
-                    />
-                  ) : (
-                    <img
-                      src={`https://flagcdn.com/w40/${countryCode}.png`}
-                      alt={pkg.region_fr || ""}
-                      width={32}
-                      height={20}
-                      className="rounded object-cover border"
-                    />
-                  )} */}
-                  <h3 className="text-sm font-bold text-purple-800">
-                    {pkg.name}
+                  <h3 className="ml-1 text-sm font-bold text-purple-800">
+                    <span className="font-bold underline">Topup:</span> {pkg.title || pkg.name}
                   </h3>
                 </div>
                 <div className="flex flex-wrap gap-1 mb-3 justify-start self-start">
                   <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-medium">
-                    {pkg.data_amount}{" "}
-                    {pkg.data_unit === "GB" ? "Go" : pkg.data_unit}
+                    {pkg.data || pkg.amount ? `${pkg.data || `${pkg.amount} MB`}` : ""}
                   </span>
                   <span className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full font-medium">
-                    {pkg.day}{" "}
-                    {"Days"}
+                    {pkg.day} Days
                   </span>
+                  {/* Show if unlimited */}
+                  {pkg.is_unlimited && (
+                    <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                      Illimité
+                    </span>
+                  )}
+                </div>
+                {/* Show Voice and SMS if available */}
+                <div className="flex flex-wrap gap-1 mb-2 self-start">
+                  {pkg.voice && (
+                    <span className="text-xs bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full font-medium">
+                      {pkg.voice} min voix
+                    </span>
+                  )}
+                  {pkg.text && (
+                    <span className="text-xs bg-pink-50 text-pink-700 px-2 py-0.5 rounded-full font-medium">
+                      {pkg.text} SMS
+                    </span>
+                  )}
                 </div>
                 <div className="text-lg font-bold text-gray-800 mb-3 self-start">
                   {symbol}

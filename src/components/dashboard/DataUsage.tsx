@@ -93,12 +93,12 @@ export default function DataUsage() {
             </div>
             <span
               className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors duration-200 ${
-                selectedSim.status === "completed"
-                  ? "bg-green-100 text-green-700 ring-1 ring-green-200"
-                  : "bg-gray-100 text-gray-700 ring-1 ring-gray-200"
+                usage?.status === "NOT_ACTIVE"
+                ? "bg-gray-100 text-gray-700 ring-1 ring-gray-200"
+                : "bg-green-100 text-green-700 ring-1 ring-green-200"
               }`}
             >
-              {selectedSim.status === "completed" ? "Active" : "Inactive"}
+              {usage?.status === "NOT_ACTIVE" ? "Inactive" : "Active"}
             </span>
           </div>
 
@@ -131,7 +131,7 @@ export default function DataUsage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-teal-700 mb-1">
-                    Données utilisées
+                    Données restantes
                   </p>
                   <p className="text-3xl font-bold text-teal-800">
                     {usageLoading ? (

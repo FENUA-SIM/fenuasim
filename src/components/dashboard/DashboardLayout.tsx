@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Package, History, Activity, MessageSquare } from 'lucide-react';
+import { Package, History, Activity, MessageSquare, CreditCard } from 'lucide-react';
 
 interface NavItem {
   label: string;
@@ -11,6 +11,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Mes forfaits', icon: <Package className="w-5 h-5" />, href: '/dashboard' },
+  { label: 'Mes eSIM', icon: <CreditCard className="w-5 h-5" />, href: '/dashboard/my-esims' },
   { label: 'Consommation', icon: <Activity className="w-5 h-5" />, href: '/dashboard/usage' },
   { label: 'Support', icon: <MessageSquare className="w-5 h-5" />, href: '/dashboard/support' },
 ];
