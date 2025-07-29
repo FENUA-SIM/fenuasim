@@ -1,15 +1,60 @@
 import { useEffect, useState } from 'react';
-import { useOrders } from '@/hooks/useOrders';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { supabase } from '@/lib/supabaseClient'; // adjust path if needed
+
+type OrderStatus = {
+  slug: string;
+};
+
+type Order = {
+  id: string | number;
+  created_at: string;
+  package_name: string;
+  data_amount: string | number;
+  status: string;
+  price: number;
+  currency: string;
+  email: string;
+  transaction_type: string;
+  promo_code: string | null;
+};
 
 export default function OrdersList() {
-  const { orders, loading, error, fetchOrders } = useOrders();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    fetchOrders(page);
-  }, [fetchOrders, page]);
+    const fetchOrders = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        if (!user || !user.email) throw new Error('Utilisateur non connecté');
+
+        // Fetch orders for this email
+        const { data, error: ordersError } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('email', user.email)
+          .order('created_at', { ascending: false })
+          .range((page - 1) * 10, page * 10 - 1);
+
+        if (ordersError) throw ordersError;
+        setOrders(data || []);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [page]);
 
   if (loading) {
     return (
@@ -58,6 +103,12 @@ export default function OrdersList() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Prix
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type de transaction
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Promo
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -67,24 +118,35 @@ export default function OrdersList() {
                     {format(new Date(order.created_at), 'dd MMMM yyyy', { locale: fr })}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{order.package}</div>
+                    <div className="text-sm font-medium text-gray-900">{order.package_name}</div>
                     <div className="text-sm text-gray-500">
-                      {order.data.toString().slice(0, -2)} Go
+                      {order.data_amount} Go
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      order.status.slug === 'completed' ? 'bg-green-100 text-green-800' :
-                      order.status.slug === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {order.status.slug === 'completed' ? 'Terminée' :
-                       order.status.slug === 'pending' ? 'En cours' :
-                       order.status.slug}
+                      {order.status === 'completed' ? 'Terminée' :
+                       order.status === 'pending' ? 'En cours' :
+                       order.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {order.price} {order.currency}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {order.transaction_type === "new_order" ? 'Nouvelle commande' : "Recharger"}
+                  </td>
+                   <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      order.promo_code !== null ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {order.promo_code !== null ? 'Promo appliquée' : 'Pas de promo'}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -112,4 +174,4 @@ export default function OrdersList() {
       </div>
     </div>
   );
-} 
+}
