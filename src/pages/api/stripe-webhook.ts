@@ -99,7 +99,7 @@ export default async function handler(
           },
           body: JSON.stringify({
             sim_iccid: sim_iccid,
-            airalo_package_id: `${packageData.id}-topup`,
+            airalo_package_id: packageId,
           }),
         });
 
