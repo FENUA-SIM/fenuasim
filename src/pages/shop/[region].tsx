@@ -289,7 +289,7 @@ export default function RegionPage() {
   // Fonction d'ajout au panier
   function handleAddToCart(pkg: Package) {
     const margin = parseFloat(localStorage.getItem('global_margin') || '0');
-    const pkgWithMargin = { ...pkg, final_price_eur: pkg.final_price_eur * (1 + margin) };
+    const pkgWithMargin = { ...pkg, final_price_eur: pkg.final_price_eur! * (1 + margin) };
     setCart((prev) => [...prev, pkgWithMargin]);
     setShowCartModal(true);
   }
@@ -319,7 +319,7 @@ export default function RegionPage() {
     let promoCodeToSave = null; // <-- Add this line
 
     // Validate promo code if provided
-    let finalPrice = selectedPackage.final_price_eur * (1 + margin);
+    let finalPrice = selectedPackage.final_price_eur! * (1 + margin);
     if (form.codePromo) {
       const promoResult = await validateAndApplyPromoCode(
         form.codePromo,
@@ -537,7 +537,7 @@ export default function RegionPage() {
                       symbol = "₣";
                     }
                     const margin = parseFloat(localStorage.getItem('global_margin') || '0');
-                    const priceWithMargin = price * (1 + margin);
+                    const priceWithMargin = price! * (1 + margin);
                     const countryCode = pkg.country
                       ? pkg.country.toLowerCase()
                       : "xx";
@@ -882,7 +882,7 @@ export default function RegionPage() {
                 </span>
               </div>
               <div className="text-xl font-bold text-gray-900 mb-2">
-                {(selectedPackage.final_price_eur * (1 + margin)).toFixed(2)} €
+                {(selectedPackage.final_price_eur! * (1 + margin)).toFixed(2)} €
               </div>
             </div>
             <form onSubmit={handleRecapSubmit} className="space-y-4">

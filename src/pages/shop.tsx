@@ -11,6 +11,7 @@ type Package = Database["public"]["Tables"]["airalo_packages"]["Row"];
 
 interface RegionStats {
   minPrice: number;
+  maxPrice: number;
   maxDays: number;
   packageCount: number;
   operatorName: string;
