@@ -70,7 +70,7 @@ export default async function handler(
       const { data: packageData, error: packageError } = await supabase
         .from("airalo_packages")
         .select("*")
-        .eq("id", packageId)
+        .eq("id", packageId.split("-topup")[0])
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();

@@ -299,7 +299,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
         body: JSON.stringify({
           cartItems: [
             {
-              id: selectedTopUpPackage.id.split("-topup")[0],
+              id: selectedTopUpPackage.id,
               name: selectedTopUpPackage.name || selectedTopUpPackage.title,
               description: selectedTopUpPackage.description ?? "",
               price: finalPrice,
