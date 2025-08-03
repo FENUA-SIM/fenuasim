@@ -74,6 +74,8 @@ export default function PackageCardSimple({
   }
 
   const countryCode = getCountryCode(pkg.region_fr || null)
+  const margin = parseFloat(localStorage.getItem('global_margin')!);
+  const minPriceWithMargin = minPrice * (1 + margin);
 
   return (
     <div
@@ -96,6 +98,9 @@ export default function PackageCardSimple({
         <div className="flex flex-wrap items-center gap-2 mt-1 mb-2">
           <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
             À partir de {minData} Go
+          </span>
+          <span className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full font-semibold">
+            {minPriceWithMargin.toFixed(2)} {currency}
           </span>
           <span className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full font-semibold">
             de {minDays} à {maxDays} jours

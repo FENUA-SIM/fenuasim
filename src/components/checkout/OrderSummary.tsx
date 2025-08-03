@@ -78,6 +78,9 @@ export default function OrderSummary({ pkg: initialPkg }: OrderSummaryProps) {
     }
   }
 
+  const margin = parseFloat(localStorage.getItem('global_margin')!);
+  const priceWithMargin = pkg.price! * (1 + margin);
+
   return (
     <form onSubmit={handlePay} className="bg-white rounded-xl p-6 shadow-lg mb-8">
       <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
@@ -105,7 +108,7 @@ export default function OrderSummary({ pkg: initialPkg }: OrderSummaryProps) {
         </div>
         <div className="flex justify-between text-lg font-bold mt-4 pt-4 border-t">
           <span>Total</span>
-          <span>{pkg.price} {pkg.currency}</span>
+          <span>{priceWithMargin.toFixed(2)} {pkg.currency}</span>
         </div>
       </div>
       <button
@@ -117,4 +120,4 @@ export default function OrderSummary({ pkg: initialPkg }: OrderSummaryProps) {
       </button>
     </form>
   )
-} 
+}

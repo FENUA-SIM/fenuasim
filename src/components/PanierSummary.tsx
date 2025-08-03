@@ -1,5 +1,8 @@
 import { useCart } from '@/context/CartContext'
 
+const margin = parseFloat(localStorage.getItem('global_margin')!);
+const getPriceWithMargin = (price: number) => price * (1 + margin);
+
 export default function PanierSummary({ language }: { language: string }) {
   const { items, total } = useCart()
   return (
@@ -11,17 +14,17 @@ export default function PanierSummary({ language }: { language: string }) {
         {items.map(item => (
           <li key={item.id} className="flex justify-between text-sm mb-1">
             <span>{item.name}</span>
-            <span>{item.price} {item.currency}</span>
+            <span>{getPriceWithMargin(item.price).toFixed(2)} {item.currency}</span>
           </li>
         ))}
       </ul>
       <div className="flex justify-between font-bold text-fenua-purple text-lg mb-4">
         <span>{language === 'fr' ? 'Total' : 'Total'}</span>
-        <span>{total} XPF</span>
+        <span>{getPriceWithMargin(total).toFixed(2)} XPF</span>
       </div>
       <button className="btn-gradient w-full py-3 rounded-full text-lg font-semibold shadow-md">
         {language === 'fr' ? 'Commander' : 'Checkout'}
       </button>
     </div>
   )
-} 
+}

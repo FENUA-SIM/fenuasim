@@ -117,7 +117,7 @@ function DestinationCard({
             <span
               className={`font-bold ${isTop ? "text-lg sm:text-2xl text-purple-600" : "text-base sm:text-xl text-purple-500"}`}
             >
-              {stats.minPrice}
+              {stats.minPrice.toFixed(2)}
               {getCurrencySymbol()}
             </span>
           </div>
@@ -173,6 +173,7 @@ export default function Shop() {
   const [currency, setCurrency] = useState<"EUR" | "XPF" | "USD">("EUR");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "local" | "global">("all");
+  const [margin, setMargin] = useState(0);
 
   useEffect(() => {
     async function fetchPackages() {
@@ -218,7 +219,12 @@ export default function Shop() {
     }
   }, []);
 
-  // Helper function to get price based on currency
+  useEffect(() => {
+    // Only runs on client
+    const storedMargin = parseFloat(localStorage.getItem('global_margin') || '0');
+    setMargin(storedMargin);
+  }, []);
+
   const getPrice = (pkg: Package, currency: string): number => {
     switch (currency) {
       case "USD":
@@ -249,31 +255,20 @@ export default function Shop() {
   // Calculate statistics for each region
   const regionStats = Object.entries(packagesByRegion).reduce(
     (acc, [region, pkgs]) => {
-      // Get all valid prices for current currency
-      const prices = pkgs
-        .map((p) => getPrice(p, currency))
-        .filter((price) => price > 0);
-
+      const prices = pkgs.map((p) => getPrice(p, currency)).filter((p) => p > 0);
       const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-      const maxDays = Math.max(
-        ...pkgs.map((p) => parseInt(p.validity?.toString().split(' ')[0] || "0"))
-      );
+      const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
-      // Get unique operators
-      const operatorNames = Array.from(
-        new Set(pkgs.map((p) => p.operator_name).filter(Boolean))
-      );
-      const mainOperator = operatorNames[0] || "Airalo";
-
-      // Get country code from the first package
-      const countryCode = pkgs[0]?.flag_url || "xx";
-
+      // Apply margin here
       acc[region] = {
-        minPrice,
-        maxDays,
+        minPrice: minPrice * (1 + margin),
+        maxPrice: maxPrice * (1 + margin),
         packageCount: pkgs.length,
-        operatorName: mainOperator,
-        countryCode,
+        operatorName: pkgs[0]?.operator_name || "Inconnu",
+        countryCode: pkgs[0]?.flag_url || "xx",
+        maxDays: Math.max(
+          ...pkgs.map((p) => parseInt(p.validity?.toString().split(' ')[0] || "0"))
+        ),
       };
       return acc;
     },

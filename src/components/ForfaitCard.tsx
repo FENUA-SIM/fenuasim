@@ -30,13 +30,16 @@ export function ForfaitCard({
 }: ForfaitCardProps) {
   const { addToCart } = useCart()
 
+  const margin = parseFloat(localStorage.getItem('global_margin') || '0');
+  const priceWithMargin = price * (1 + margin);
+
   const handleAddToCart = () => {
     addToCart({
       id,
       name,
-      price,
+      price: priceWithMargin,
       currency,
-    })
+    });
   }
 
   return (
@@ -67,7 +70,7 @@ export function ForfaitCard({
         </div>
         <div className="flex justify-between items-center">
           <p className="text-2xl font-bold text-fenua-purple">
-            {price} {currency}
+            {priceWithMargin.toFixed(2)} {currency}
           </p>
           <Button
             onClick={handleAddToCart}
@@ -80,4 +83,4 @@ export function ForfaitCard({
       </div>
     </div>
   )
-} 
+}

@@ -288,7 +288,9 @@ export default function RegionPage() {
 
   // Fonction d'ajout au panier
   function handleAddToCart(pkg: Package) {
-    setCart((prev) => [...prev, pkg]);
+    const margin = parseFloat(localStorage.getItem('global_margin') || '0');
+    const pkgWithMargin = { ...pkg, final_price_eur: pkg.final_price_eur * (1 + margin) };
+    setCart((prev) => [...prev, pkgWithMargin]);
     setShowCartModal(true);
   }
 
@@ -314,13 +316,13 @@ export default function RegionPage() {
     }
     setFormError(null);
 
+    let promoCodeToSave = null; // <-- Add this line
+
     // Validate promo code if provided
-    let finalPrice = selectedPackage.final_price_eur;
-    let promoCodeToSave = null;
+    let finalPrice = selectedPackage.final_price_eur * (1 + margin);
     if (form.codePromo) {
       const promoResult = await validateAndApplyPromoCode(
         form.codePromo,
-        /* @ts-ignore */
         finalPrice
       );
       if (!promoResult.isValid) {
@@ -383,6 +385,7 @@ export default function RegionPage() {
     setCurrentIndex((prev) => (prev === packages.length - 1 ? 0 : prev + 1));
   };
 
+  const margin = parseFloat(localStorage.getItem('global_margin')!);
   const selectedPackagePrice = () => {
     let price = selectedPackage?.final_price_eur;
     let symbol = "€";
@@ -393,7 +396,8 @@ export default function RegionPage() {
       price = selectedPackage?.final_price_xpf;
       symbol = "₣";
     }
-    return `${price} ${currency === "USD" ? "$" : currency === "XPF" ? "₣" : "€"}`;
+    const priceWithMargin = price! * (1 + margin);
+    return `${priceWithMargin.toFixed(2)} ${symbol}`;
   };
 
   return (
@@ -468,7 +472,7 @@ export default function RegionPage() {
             </div>
             <div>
               <button
-                className="bg-gradient-to-r from-purple-600 to-orange-500 text-white px-6 py-2.5 rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-sm sm:text-base font-semibold"
+                className="bg-gradient-to-r from-purple-600 to-orange-500 text-white px-6 py-2.5 rounded-xl hover:from-purple-700 hover:to-orange-600 transition-all duration-300 text-sm sm:text-base"
                 onClick={() => router.push("/compatibilite")}
               >
                 Vérifier la compatibilité
@@ -532,6 +536,8 @@ export default function RegionPage() {
                       price = pkg.final_price_xpf;
                       symbol = "₣";
                     }
+                    const margin = parseFloat(localStorage.getItem('global_margin') || '0');
+                    const priceWithMargin = price * (1 + margin);
                     const countryCode = pkg.country
                       ? pkg.country.toLowerCase()
                       : "xx";
@@ -575,8 +581,8 @@ export default function RegionPage() {
                         </div>
                         {/* Price */}
                         <div className="text-xl font-bold text-purple-700 mb-4">
-                          {price && price > 0 ? (
-                            `${price} ${symbol}`
+                          {priceWithMargin && priceWithMargin > 0 ? (
+                            `${priceWithMargin.toFixed(2)} ${symbol}`
                           ) : (
                             <span className="text-gray-400">
                               Prix indisponible
@@ -876,7 +882,7 @@ export default function RegionPage() {
                 </span>
               </div>
               <div className="text-xl font-bold text-gray-900 mb-2">
-                {selectedPackage.final_price_eur} €
+                {(selectedPackage.final_price_eur * (1 + margin)).toFixed(2)} €
               </div>
             </div>
             <form onSubmit={handleRecapSubmit} className="space-y-4">

@@ -228,10 +228,11 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
     e.preventDefault();
     const pkg = topUpPackages.find(p => p.id === packageId);
     if (!pkg) return;
+    const pkgPrice = pkg.price * (1 + margin); 
 
     const result = await validateAndApplyPromoCode(
       packagePromoCodes[packageId]?.code || '',
-      pkg.price
+      pkgPrice.toFixed(2) as unknown as number
     );
 
     setPackagePromoCodes(prev => ({
@@ -261,9 +262,9 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
       return;
     }
     setFormError(null);
-
+    
     // Validate promo code if provided
-    let finalPrice = selectedTopUpPackage.price;
+    let finalPrice = selectedTopUpPackage.price * (1 + margin);
     let promoCodeToSave = null;
     if (form.codePromo) {
       const promoResult = await validateAndApplyPromoCode(
@@ -277,7 +278,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
       finalPrice = promoResult.discountedPrice;
       promoCodeToSave = form.codePromo;
     }
-
+    
     // Store customer info in localStorage
     localStorage.setItem("packageId", selectedTopUpPackage.id);
     localStorage.setItem("customerId", form.email);
@@ -289,7 +290,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
     if (form.codePartenaire) {
       localStorage.setItem("partnerCode", form.codePartenaire);
     }
-
+    
     setShowRecapModal(false);
     try {
       const response = await fetch("/api/create-topup-checkout-session", {
@@ -299,7 +300,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
           cartItems: [
             {
               id: selectedTopUpPackage.id,
-              name: selectedTopUpPackage.name,
+              name: selectedTopUpPackage.name || selectedTopUpPackage.title,
               description: selectedTopUpPackage.description ?? "",
               price: finalPrice,
               currency: "EUR",
@@ -326,8 +327,13 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
     }
   }
 
+  const margin = parseFloat(localStorage.getItem('global_margin')!);
   const displayPackages = topUpPackages.slice(currentIndex, currentIndex + (topUpPackages.length === 1 ? 1 : 2));
-
+useEffect(() => {
+    if (selectedTopUpPackage) {
+      console.log("First package details:", selectedTopUpPackage);
+    }
+  }, [selectedTopUpPackage]);
 
   if (loading) {
     return (
@@ -394,6 +400,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
               price = pkg.price;
               symbol = "₣";
             }
+            let priceWithMargin = pkg.price * (1 + margin);
 
             return (
               <div
@@ -439,7 +446,7 @@ const TopUpInlineSection: React.FC<TopUpInlineSectionProps> = ({ order }) => {
                 </div>
                 <div className="text-lg font-bold text-gray-800 mb-3 self-start">
                   {symbol}
-                  {price.toFixed(2)}
+                  {priceWithMargin.toFixed(2)}
                 </div>
                 <div className="flex flex-col items-center w-full">
                   <div className="w-full mb-4">

@@ -89,6 +89,7 @@ export default function PackageCard({
   // console.log('pkggg',pkg)
 
   // Prix dynamique selon la devise
+  let margin = parseFloat(localStorage.getItem('global_margin')!);
   let price = pkg.final_price_eur;
   let symbol = "€";
   if (currency === "XPF") {
@@ -98,6 +99,7 @@ export default function PackageCard({
     price = pkg.final_price_usd;
     symbol = "$";
   }
+  const priceWithMargin = price! * (1 + margin);
 
   const countryCode = getCountryCode(pkg.country || null);
 
@@ -142,11 +144,8 @@ export default function PackageCard({
             <span className="text-xs sm:text-sm text-gray-600">
               À partir de
             </span>
-            <span
-              className={`font-bold ${isTop ? "text-lg sm:text-2xl text-purple-600" : "text-base sm:text-xl text-purple-500"}`}
-            >
-              {price}
-              {symbol}
+            <span className={`font-bold ${isTop ? "text-lg sm:text-2xl text-purple-600" : "text-base sm:text-xl text-purple-500"}`}>
+              {priceWithMargin.toFixed(2)}{symbol}
             </span>
           </div>
 

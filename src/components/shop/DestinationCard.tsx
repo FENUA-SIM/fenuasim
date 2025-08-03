@@ -56,6 +56,9 @@ export default function DestinationCard({
     ? "group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-purple-200 hover:border-purple-400 transform hover:-translate-y-2 cursor-pointer overflow-hidden w-full"
     : "group relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-300 transform hover:-translate-y-1 cursor-pointer overflow-hidden w-full";
 
+  const margin = parseFloat(localStorage.getItem('global_margin')!);
+  const minPriceWithMargin = stats.minPrice * (1 + margin);
+
   return (
     <div className={cardClasses} onClick={handleCardClick}>
       {/* Premium Badge pour les top destinations */}
@@ -96,7 +99,7 @@ export default function DestinationCard({
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm text-gray-600">À partir de</span>
             <span className={`font-bold ${isTop ? "text-lg sm:text-2xl text-purple-600" : "text-base sm:text-xl text-purple-500"}`}>
-              {stats.minPrice}
+              {minPriceWithMargin.toFixed(2)}
               {getCurrencySymbol()}
             </span>
           </div>

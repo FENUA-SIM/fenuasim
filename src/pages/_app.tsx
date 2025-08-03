@@ -26,6 +26,20 @@ export default function App({ Component, pageProps }: AppProps) {
     document.head.appendChild(script);
   }, [router]);
 
+  useEffect(() => {
+    async function fetchMargin() {
+      const { data, error } = await supabase
+        .from('config')
+        .select('value')
+        .eq('key', 'global_margin')
+        .single();
+      if (data && data.value) {
+        localStorage.setItem('global_margin', data.value);
+      }
+    }
+    fetchMargin();
+  }, []);
+
   return (
     <CartProvider>
       <Layout>
