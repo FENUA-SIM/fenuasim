@@ -64,7 +64,7 @@ export default function SuccessPage() {
         const { data: esimData, error: esimError } = await supabase
           .from("airalo_topups")
           .select("*")
-          .eq("package_id", orderData.airalo_order_id.split("-topup")[0])
+          .eq("package_id", orderData.package_id)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();

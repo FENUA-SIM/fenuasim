@@ -125,7 +125,7 @@ export default async function handler(
           email: customerEmail,
           // Use the Airalo top-up ID from the API response as airalo_order_id for consistency in 'orders'
           package_id:
-            packageId.split("-topup")[0] || packageId,
+            packageId.split("-topup")[0],
           status: "completed",
           amount: session.amount_total,
           created_at: new Date().toISOString(),
@@ -170,7 +170,7 @@ export default async function handler(
           sim_iccid: sim_iccid,
           order_id: newOrderData.id,
           email: customerEmail,
-          package_id: packageId,
+          package_id: packageId.split("-topup")[0],
           amount: (session.amount_total ?? 0) / 100,
           currency:
             session.currency?.toUpperCase() ||
