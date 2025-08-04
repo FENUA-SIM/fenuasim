@@ -25,7 +25,7 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
+          emailRedirectTo: `https://fenuasim.com/account`,
         },
       });
 
@@ -77,7 +77,7 @@ export default function Login() {
         email,
         password,
         options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
+          emailRedirectTo: `https://fenuasim.com/account`,
         },
       });
       if (error) throw error;
@@ -99,7 +99,7 @@ export default function Login() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}`,
+        redirectTo: `https://fenuasim.com`,
       });
       
       if (error) throw error;
