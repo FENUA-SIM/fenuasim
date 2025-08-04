@@ -25,7 +25,7 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/account`,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
         },
       });
 
@@ -77,7 +77,7 @@ export default function Login() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/account`,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
         },
       });
       if (error) throw error;
@@ -99,7 +99,7 @@ export default function Login() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}`,
+        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}`,
       });
       
       if (error) throw error;
