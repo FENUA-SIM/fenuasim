@@ -3,6 +3,7 @@ import { OpenAI } from "openai";
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
+// Init clients
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 const supabase = createClient(
@@ -14,6 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-04-30.basil',
 });
 
+// Prompt système
 const systemPrompt = {
   role: 'system',
   content: `Tu es un assistant virtuel spécialisé dans la vente d'eSIM pour FENUA SIM.
@@ -24,13 +26,43 @@ Tu dois toujours vérifier que le client a bien reçu son eSIM par email après 
 Tu dois être poli, professionnel et concis.`
 };
 
-// === Fonctions Supabase et Stripe ===
+// === Normalisation du pays ===
+function normalizeCountry(input: string): string {
+  const map: Record<string, string> = {
+    "australie": "Australia",
+    "états-unis": "United States",
+    "usa": "United States",
+    "royaume-uni": "United Kingdom",
+    "angleterre": "United Kingdom",
+    "espagne": "Spain",
+    "allemagne": "Germany",
+    "japon": "Japan",
+    "corée du sud": "South Korea",
+    "chine": "China",
+    "brésil": "Brazil",
+    "canada": "Canada",
+    "nouvelle-zélande": "New Zealand",
+    "thailande": "Thailand",
+    "thaïlande": "Thailand",
+    "inde": "India",
+    "maroc": "Morocco",
+    "polynésie française": "French Polynesia",
+    "nouvelles-zélande": "New Zealand"
+  };
+
+  const key = input.trim().toLowerCase();
+  return map[key] || input;
+}
+
+// === Fonctions eSIM ===
 
 async function getPlans(country: string) {
+  const normalized = normalizeCountry(country);
+
   const { data, error } = await supabase
     .from('airalo_packages')
     .select('*')
-    .ilike('region_fr', `%${country}%`)
+    .ilike('region', `%${normalized}%`)
     .order('final_price_eur', { ascending: true });
 
   if (error) throw error;
@@ -78,7 +110,7 @@ async function createPayment(planId: string, email: string) {
   return session.url;
 }
 
-// === Handler principal ===
+// === Handler API principal ===
 
 export default async function handler(
   req: NextApiRequest,
@@ -161,7 +193,7 @@ export default async function handler(
             const plans = await getPlans(args.country);
             if (!plans || plans.length === 0) {
               return res.status(200).json({
-                reply: `Aucun forfait trouvé pour le pays "${args.country}". Veuillez vérifier l'orthographe ou essayer un autre pays.`
+                reply: `Aucun forfait trouvé pour "${args.country}". Veuillez vérifier le pays ou essayer un autre.`
               });
             }
             return res.status(200).json({ plans });
@@ -194,3 +226,4 @@ export default async function handler(
     return res.status(500).json({ error: "Erreur du serveur assistant GPT" });
   }
 }
+
