@@ -171,6 +171,7 @@ export default function RegionPage() {
     codePartenaire: "",
   });
   const [formError, setFormError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Panier stocké dans le localStorage
   const [cart, setCart] = useState<Package[]>([]);
@@ -251,6 +252,17 @@ export default function RegionPage() {
     }
     fetchData();
   }, [params?.region]);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   if (loading) {
     return (
@@ -526,7 +538,7 @@ export default function RegionPage() {
               {/* Carousel Cards */}
               {packages.length > 0 && (
                 <div className="w-full max-w-2xl mx-auto flex justify-center gap-4">
-                  {packages.slice(currentIndex, currentIndex + 2).map((pkg) => {
+                  {packages.slice(currentIndex, currentIndex + (isMobile ? 1 : 2)).map((pkg) => {
                     let price = pkg.final_price_eur;
                     let symbol = "€";
                     if (currency === "USD") {
@@ -544,7 +556,7 @@ export default function RegionPage() {
                     return (
                       <div
                         key={pkg.id}
-                        className={`w-1/2 bg-white rounded-xl border-2 p-6 flex flex-col items-center shadow transition-all duration-200 ${
+                        className={`w-full sm:w-1/2 bg-white rounded-xl border-2 p-6 flex flex-col items-center shadow transition-all duration-200 ${
                           selectedPackage?.id === pkg.id
                             ? "border-purple-500 shadow-lg"
                             : "border-gray-100 hover:border-purple-300"
