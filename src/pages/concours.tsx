@@ -1,151 +1,78 @@
 'use client';
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import dynamic from "next/dynamic";
-
-// Chargement du PhoneInput uniquement côté client
-const PhoneInput = dynamic(() => import("react-phone-number-input"), { ssr: false });
+import { supabase } from "@/utils/supabaseClient"; // ⚠️ Remplace par chemin relatif si l'alias @ n'est pas configuré
 
 function ParticipationForm({ concoursKey = "esim-monde-2025" }) {
   const [form, setForm] = useState({
     nom: "",
     prenom: "",
     email: "",
-    telephone: "",
     consent: false,
-    website: "", // honeypot anti-spam
+    website: "", // honeypot
   });
   const [status, setStatus] = useState({ loading: false, ok: null, msg: "" });
 
   const onChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    const { name, type, value, checked } = e.target;
+    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const onPhoneChange = (value) => {
-    setForm(prev => ({ ...prev, telephone: value || "" }));
-  };
-
-  const validateForm = () => {
-    if (!form.nom || !form.prenom || !form.email || !form.telephone) {
+  const validate = () => {
+    if (!form.nom || !form.prenom || !form.email) {
       return "Tous les champs sont requis.";
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email)) {
-      return "Email invalide.";
-    }
-    if (!form.telephone || form.telephone.length < 8) {
-      return "Numéro de téléphone invalide.";
-    }
-    if (!form.consent) {
-      return "Vous devez accepter le traitement des données.";
-    }
-    if (form.website) {
-      return "Détection anti-spam : soumission refusée.";
-    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email)) return "Email invalide.";
+    if (!form.consent) return "Vous devez accepter le traitement des données.";
+    if (form.website) return "Détection anti-spam.";
     return null;
   };
 
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    const error = validateForm();
-    if (error) {
-      setStatus({ loading: false, ok: false, msg: error });
+    setStatus({ loading: true, ok: null, msg: "" });
+
+    const err = validate();
+    if (err) {
+      setStatus({ loading: false, ok: false, msg: err });
       return;
     }
 
-    setStatus({ loading: true, ok: null, msg: "" });
+    const payload = {
+      concours_key: concoursKey,
+      nom: form.nom.trim(),
+      prenom: form.prenom.trim(),
+      email: form.email.trim().toLowerCase(),
+    };
 
-    try {
-      const { data, error: supabaseError } = await supabase
-        .from('concours_participations')
-        .insert([{
-          concours_key: concoursKey,
-          nom: form.nom.trim(),
-          prenom: form.prenom.trim(),
-          email: form.email.trim().toLowerCase(),
-          telephone: form.telephone.trim(),
-        }]);
+    const { error } = await supabase
+      .from("participations")
+      .upsert([payload], { onConflict: "concours_key,email", ignoreDuplicates: true });
 
-      if (supabaseError) throw supabaseError;
-
-      setStatus({ loading: false, ok: true, msg: "Participation enregistrée avec succès !" });
-      setForm({ nom: "", prenom: "", email: "", telephone: "", consent: false, website: "" });
-    } catch (error) {
-      console.error('Erreur lors de l\'enregistrement:', error);
-      setStatus({ loading: false, ok: false, msg: "Erreur lors de l'enregistrement. Veuillez réessayer." });
+    if (error) {
+      setStatus({ loading: false, ok: false, msg: "Erreur: " + error.message });
+    } else {
+      setStatus({ loading: false, ok: true, msg: "Participation enregistrée 🎉" });
+      setForm({ nom: "", prenom: "", email: "", consent: false, website: "" });
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form onSubmit={onSubmit} className="space-y-4 bg-white p-4 rounded-lg border border-purple-200">
+      <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
-          <input
-            type="text"
-            name="prenom"
-            value={form.prenom}
-            onChange={onChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            required
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+          <input name="nom" value={form.nom} onChange={onChange} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
-          <input
-            type="text"
-            name="nom"
-            value={form.nom}
-            onChange={onChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            required
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+          <input name="prenom" value={form.prenom} onChange={onChange} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-        <input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={onChange}
-          className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          required
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone *</label>
-        <div className="w-full border rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-purple-500">
-          <PhoneInput
-            international
-            defaultCountry="PF"
-            placeholder="Ex: +689 XXXXXXXX"
-            value={form.telephone}
-            onChange={onPhoneChange}
-            numberInputProps={{ className: "w-full py-1 px-2 outline-none bg-transparent" }}
-          />
-        </div>
-        <p className="text-xs text-gray-500 mt-1">Format international (ex: +33612345678)</p>
-      </div>
-
-      <div className="flex items-start space-x-2">
-        <input
-          type="checkbox"
-          name="consent"
-          checked={form.consent}
-          onChange={onChange}
-          className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-          required
-        />
-        <label className="text-sm text-gray-700">
-          J'accepte le traitement de mes données personnelles pour participer à ce concours *
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input type="email" name="email" value={form.email} onChange={onChange} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
       </div>
 
       {/* Honeypot */}
@@ -154,21 +81,18 @@ function ParticipationForm({ concoursKey = "esim-monde-2025" }) {
         <input name="website" value={form.website} onChange={onChange} />
       </div>
 
-      {status.msg && (
-        <div className={`p-3 rounded-lg text-sm ${
-          status.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {status.msg}
-        </div>
-      )}
+      <label className="flex items-start gap-3 text-sm text-gray-600">
+        <input type="checkbox" name="consent" checked={form.consent} onChange={onChange} className="mt-1" required />
+        <span>J'accepte que FENUA SIM traite ces données pour la gestion du concours.</span>
+      </label>
 
-      <button
-        type="submit"
-        disabled={status.loading}
-        className="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {status.loading ? "Enregistrement..." : "Participer au concours"}
+      <button type="submit" disabled={status.loading} className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50">
+        {status.loading ? "Envoi..." : "Participer"}
       </button>
+
+      {status.msg && <p className={`text-sm ${status.ok ? "text-green-600" : "text-red-600"}`}>{status.msg}</p>}
+
+      <p className="text-xs text-gray-500">Vous pouvez demander la suppression de vos données à tout moment via contact@fenuasim.com.</p>
     </form>
   );
 }
@@ -176,6 +100,12 @@ function ParticipationForm({ concoursKey = "esim-monde-2025" }) {
 export default function Concours() {
   return (
     <div className="max-w-6xl mx-auto py-16 px-4">
+      <div className="flex justify-center mb-6">
+        <a href="/">
+          <img src="/logo.png" alt="Fenua SIM" className="h-20 w-auto hover:scale-105 transition-transform" />
+        </a>
+      </div>
+
       <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
         🎉 Grand Concours FENUA SIM
       </h1>
@@ -193,11 +123,9 @@ export default function Concours() {
         <div className="bg-gradient-to-r from-purple-50 to-orange-50 rounded-xl p-6 mb-8 border border-purple-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-purple-700">🏆 Concours en cours</h3>
-            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-              ACTIF
-            </span>
+            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">ACTIF</span>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h4 className="font-semibold text-gray-800 mb-2">"Voyagez Connecté"</h4>
@@ -272,4 +200,3 @@ export default function Concours() {
     </div>
   );
 }
-
