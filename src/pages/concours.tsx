@@ -1,6 +1,18 @@
 export default function Concours() {
   return (
     <div className="max-w-6xl mx-auto py-16 px-4">
+      
+      {/* Logo centré et cliquable vers l'accueil */}
+      <div className="flex justify-center mb-6">
+        <a href="/">
+          <img 
+            src="/logo.png" 
+            alt="Fenua SIM" 
+            className="h-20 w-auto hover:scale-105 transition-transform"
+          />
+        </a>
+      </div>
+
       <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
         🎉 Grand Concours FENUA SIM
       </h1>
@@ -118,3 +130,4 @@ export default function Concours() {
     </div>
   );
 }
+
