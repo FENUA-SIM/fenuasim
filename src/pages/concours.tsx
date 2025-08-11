@@ -1,108 +1,20 @@
-'use client';
-
-import { useState } from "react";
-import { supabase } from "@/utils/supabaseClient"; // ⚠️ Remplace par chemin relatif si l'alias @ n'est pas configuré
-
-function ParticipationForm({ concoursKey = "esim-monde-2025" }) {
-  const [form, setForm] = useState({
-    nom: "",
-    prenom: "",
-    email: "",
-    consent: false,
-    website: "", // honeypot
-  });
-  const [status, setStatus] = useState({ loading: false, ok: null, msg: "" });
-
-  const onChange = (e) => {
-    const { name, type, value, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
-  };
-
-  const validate = () => {
-    if (!form.nom || !form.prenom || !form.email) {
-      return "Tous les champs sont requis.";
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email)) return "Email invalide.";
-    if (!form.consent) return "Vous devez accepter le traitement des données.";
-    if (form.website) return "Détection anti-spam.";
-    return null;
-  };
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    setStatus({ loading: true, ok: null, msg: "" });
-
-    const err = validate();
-    if (err) {
-      setStatus({ loading: false, ok: false, msg: err });
-      return;
-    }
-
-    const payload = {
-      concours_key: concoursKey,
-      nom: form.nom.trim(),
-      prenom: form.prenom.trim(),
-      email: form.email.trim().toLowerCase(),
-    };
-
-    const { error } = await supabase
-      .from("participations")
-      .upsert([payload], { onConflict: "concours_key,email", ignoreDuplicates: true });
-
-    if (error) {
-      setStatus({ loading: false, ok: false, msg: "Erreur: " + error.message });
-    } else {
-      setStatus({ loading: false, ok: true, msg: "Participation enregistrée 🎉" });
-      setForm({ nom: "", prenom: "", email: "", consent: false, website: "" });
-    }
-  };
-
-  return (
-    <form onSubmit={onSubmit} className="space-y-4 bg-white p-4 rounded-lg border border-purple-200">
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
-          <input name="nom" value={form.nom} onChange={onChange} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
-          <input name="prenom" value={form.prenom} onChange={onChange} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <input type="email" name="email" value={form.email} onChange={onChange} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
-      </div>
-
-      {/* Honeypot */}
-      <div className="hidden">
-        <label>Votre site web</label>
-        <input name="website" value={form.website} onChange={onChange} />
-      </div>
-
-      <label className="flex items-start gap-3 text-sm text-gray-600">
-        <input type="checkbox" name="consent" checked={form.consent} onChange={onChange} className="mt-1" required />
-        <span>J'accepte que FENUA SIM traite ces données pour la gestion du concours.</span>
-      </label>
-
-      <button type="submit" disabled={status.loading} className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50">
-        {status.loading ? "Envoi..." : "Participer"}
-      </button>
-
-      {status.msg && <p className={`text-sm ${status.ok ? "text-green-600" : "text-red-600"}`}>{status.msg}</p>}
-
-      <p className="text-xs text-gray-500">Vous pouvez demander la suppression de vos données à tout moment via contact@fenuasim.com.</p>
-    </form>
-  );
-}
+// app/concours/page.tsx  (App Router)
+// ou pages/concours.tsx (Pages Router)
 
 export default function Concours() {
+  const FORM_URL =
+    "https://docs.google.com/forms/d/e/1FAIpQLScVCY66B8qhVEI4SmE36fj9e_OpgjEDnegXB2YUcyYVFcZdQA/viewform?embedded=true";
+
   return (
     <div className="max-w-6xl mx-auto py-16 px-4">
+      {/* Logo */}
       <div className="flex justify-center mb-6">
         <a href="/">
-          <img src="/logo.png" alt="Fenua SIM" className="h-20 w-auto hover:scale-105 transition-transform" />
+          <img
+            src="/logo.png"
+            alt="Fenua SIM"
+            className="h-20 w-auto hover:scale-105 transition-transform"
+          />
         </a>
       </div>
 
@@ -116,10 +28,12 @@ export default function Concours() {
             Gagnez une eSIM Monde pour rester connecté partout !
           </h2>
           <p className="text-gray-600 text-lg">
-            Participez et tentez de remporter une <strong>eSIM Monde 20 Go – 200 SMS – 200 min – 365 jours</strong>, utilisable dans plus de 100 pays 🌍.
+            Participez et tentez de remporter une{" "}
+            <strong>eSIM Monde 20 Go – 200 SMS – 200 min – 365 jours</strong>, utilisable dans plus de 100 pays 🌍.
           </p>
         </div>
 
+        {/* Concours en cours */}
         <div className="bg-gradient-to-r from-purple-50 to-orange-50 rounded-xl p-6 mb-8 border border-purple-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-purple-700">🏆 Concours en cours</h3>
@@ -130,7 +44,8 @@ export default function Concours() {
             <div>
               <h4 className="font-semibold text-gray-800 mb-2">"Voyagez Connecté"</h4>
               <p className="text-gray-600 mb-3">
-                Partagez votre plus belle photo de voyage et remportez notre eSIM Monde <strong>20 Go – 200 SMS – 200 min – 365 jours</strong>.
+                Partagez votre plus belle photo de voyage et remportez notre eSIM Monde{" "}
+                <strong>20 Go – 200 SMS – 200 min – 365 jours</strong>.
               </p>
               <div className="space-y-2 text-sm text-gray-600">
                 <p>📅 <strong>Date limite :</strong> 07 septembre 2025 à 00h00 (heure de Tahiti)</p>
@@ -139,12 +54,50 @@ export default function Concours() {
               </div>
             </div>
 
+            {/* Bloc inscription via Google Forms (embed) */}
             <div className="bg-white rounded-lg p-4 border border-purple-200">
               <h5 className="font-semibold text-purple-700 mb-3">Inscription au tirage :</h5>
-              <ParticipationForm concoursKey="esim-monde-2025" />
+
+              {/* Lien de secours (au-dessus, pour accessibilité) */}
+              <p className="text-sm text-gray-600 mb-3">
+                Si l’encart ne s’affiche pas, utilisez ce lien :{" "}
+                <a
+                  href={FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-700 underline"
+                >
+                  Ouvrir le formulaire
+                </a>
+              </p>
+
+              {/* Wrapper responsive */}
+              <div className="relative w-full overflow-hidden rounded-md border border-purple-200">
+                {/* hauteur adaptable par breakpoint */}
+                <iframe
+                  title="Formulaire de participation FENUA SIM"
+                  src={FORM_URL}
+                  className="w-full"
+                  style={{
+                    border: 0,
+                    height: "900px",          // hauteur par défaut
+                  }}
+                  loading="lazy"
+                />
+              </div>
+
+              {/* Petite note RGPD */}
+              <p className="text-xs text-gray-500 mt-3">
+                Vos données sont collectées uniquement pour la gestion du concours. Pour toute question :{" "}
+                <a href="mailto:contact@fenuasim.com" className="underline">
+                  contact@fenuasim.com
+                </a>
+                .
+              </p>
             </div>
           </div>
 
+          {/* Rappel des règles de participation Facebook */}
           <div className="bg-white rounded-lg p-4 border border-purple-200 mt-6">
             <h5 className="font-semibold text-purple-700 mb-3">Comment participer sur Facebook :</h5>
             <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
@@ -156,6 +109,7 @@ export default function Concours() {
           </div>
         </div>
 
+        {/* Règles générales */}
         <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-200">
           <h3 className="text-xl font-semibold text-blue-700 mb-4">📋 Règles générales</h3>
           <div className="grid md:grid-cols-2 gap-6">
@@ -179,22 +133,43 @@ export default function Concours() {
           </div>
         </div>
 
+        {/* CTA réseaux & contact */}
         <div className="text-center">
           <h3 className="text-xl font-semibold text-purple-700 mb-4">Prêt à tenter votre chance ?</h3>
-          <p className="text-gray-600 mb-6">Rejoignez notre communauté Facebook et participez maintenant pour gagner votre eSIM Monde 20 Go !</p>
+          <p className="text-gray-600 mb-6">
+            Rejoignez notre communauté Facebook et participez maintenant pour gagner votre eSIM Monde 20 Go !
+          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="https://www.facebook.com/fenuasim" target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-purple-600 to-pink-500 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg transition-all duration-300">📱 Suivre sur Facebook</a>
-            <a href="/contact" className="inline-block border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-purple-600 hover:text-white transition-all duration-300">💬 Nous contacter</a>
+            <a
+              href="https://www.facebook.com/fenuasim"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-gradient-to-r from-purple-600 to-pink-500 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg transition-all duration-300"
+            >
+              📱 Suivre sur Facebook
+            </a>
+            <a
+              href="/contact"
+              className="inline-block border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-purple-600 hover:text-white transition-all duration-300"
+            >
+              💬 Nous contacter
+            </a>
           </div>
         </div>
       </div>
 
+      {/* Informations légales */}
       <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">ℹ️ Informations légales</h3>
-        <p className="text-sm text-gray-600 mb-4">Ce concours est organisé par FENUA SIM SASU, 58 rue Monceau 75008 Paris. Les règles complètes sont disponibles sur demande.</p>
+        <p className="text-sm text-gray-600 mb-4">
+          Ce concours est organisé par FENUA SIM SASU, 58 rue Monceau 75008 Paris.
+          Les règles complètes sont disponibles sur demande.
+        </p>
         <p className="text-sm text-gray-600">
           Pour toute question concernant notre concours, contactez-nous à
-          <a href="mailto:contact@fenuasim.com" className="text-purple-600 hover:underline ml-1">contact@fenuasim.com</a>
+          <a href="mailto:contact@fenuasim.com" className="text-purple-600 hover:underline ml-1">
+            contact@fenuasim.com
+          </a>
         </p>
       </div>
     </div>
